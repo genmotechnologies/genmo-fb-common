@@ -84,28 +84,3 @@ cd /tmp/test-install
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate
-
-# Install from GitHub
-pip install git+https://github.com/genmo-platform/genmo-fb-common.git@v1.0.0
-
-# Test import
-python -c "from genmo_fb_common import BaseModel; print('Success!')"
-
-```
-
-## Development
-```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Run linters
-ruff check .
-black --check .
-```
-
-## License
-
-Proprietary Technology - GenMo Platform

@@ -8,8 +8,8 @@ __version__ = "1.0.0"
 
 from .clients import ServiceClient
 from .events import EventPayload, publish_event
-from .exceptions import GenMoError  # Changed from GenMoException
 from .exceptions import (
+    GenMoError,
     NotFoundError,
     PermissionDeniedError,
     ServiceUnavailableError,
@@ -24,7 +24,7 @@ __all__ = [
     "ServiceClient",
     "publish_event",
     "EventPayload",
-    "GenMoError",  # Changed from GenMoException
+    "GenMoError",
     "ServiceUnavailableError",
     "ValidationError",
     "NotFoundError",
