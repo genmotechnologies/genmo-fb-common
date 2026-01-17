@@ -9,6 +9,7 @@ DEBUG = True
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
+    "tests"
 ]
 
 DATABASES = {
