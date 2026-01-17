@@ -49,6 +49,50 @@ payload = EventPayload(
 publish_event(payload)
 ```
 
+## Updating genmo-fb-common
+
+To add new functionality:
+
+```bash
+# Create branch
+git checkout -b feature/COM-XXX-new-feature
+
+# Make changes...
+
+# Test
+pytest
+
+# Commit and push
+git add .
+git commit -m "COM-XXX: Add new feature"
+git push origin feature/COM-XXX-new-feature
+
+# Create PR, get approval, merge
+
+# Tag new version
+git checkout main
+git pull origin main
+git tag v1.1.0
+git push origin v1.1.0
+```
+## Testing installation
+```bash
+# Create a test directory
+mkdir /tmp/test-install
+cd /tmp/test-install
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install from GitHub
+pip install git+https://github.com/genmo-platform/genmo-fb-common.git@v1.0.0
+
+# Test import
+python -c "from genmo_fb_common import BaseModel; print('Success!')"
+
+```
+
 ## Development
 ```bash
 # Install dev dependencies
