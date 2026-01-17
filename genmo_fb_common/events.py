@@ -24,7 +24,7 @@ class EventPayload:
     All events MUST use this structure for consistency.
     
     Usage:
-        payload = EventPayload(
+        payload = EventPayload(§
             event_type="transfer.completed",
             source_service="transfer-service",
             data={

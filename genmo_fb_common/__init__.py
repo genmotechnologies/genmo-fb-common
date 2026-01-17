@@ -6,11 +6,11 @@ Shared utilities, base classes, and helpers for all GenMo services.
 
 __version__ = "1.0.0"
 
-from genmo_fb_common.models import BaseModel
-from genmo_fb_common.managers import ActiveManager
-from genmo_fb_common.clients import ServiceClient
-from genmo_fb_common.events import publish_event, EventPayload
-from genmo_fb_common.exceptions import (
+from .models import BaseModel
+from .managers import ActiveManager
+from .clients import ServiceClient
+from .events import publish_event, EventPayload
+from .exceptions import (
     GenMoException,
     ServiceUnavailableError,
     ValidationError,
