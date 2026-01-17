@@ -65,3 +65,4 @@ ignore = ["E501"]
 DJANGO_SETTINGS_MODULE = "tests.settings"
 python_files = "test_*.py"
 addopts = "-v --tb=short"
+pythonpath = ["."]

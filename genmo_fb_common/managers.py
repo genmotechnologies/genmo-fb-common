@@ -8,11 +8,11 @@ from django.db import models
 class ActiveManager(models.Manager):
     """
     Manager that excludes soft-deleted records.
-    
+
     Usage:
         # Returns only non-deleted records
         Family.objects.all()
-        
+
         # To include deleted records
         Family.all_objects.all()
     """
