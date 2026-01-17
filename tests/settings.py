@@ -6,11 +6,7 @@ SECRET_KEY = "test-secret-key-not-for-production"
 
 DEBUG = True
 
-INSTALLED_APPS = [
-    "django.contrib.contenttypes",
-    "django.contrib.auth",
-    "tests"
-]
+INSTALLED_APPS = ["django.contrib.contenttypes", "django.contrib.auth", "tests"]
 
 DATABASES = {
     "default": {
