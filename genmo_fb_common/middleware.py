@@ -2,18 +2,17 @@
 Django middleware for GenMo services.
 """
 
+import hashlib
 import threading
 import uuid
 from typing import Callable
 
-import structlog
-from django.http import HttpRequest, HttpResponse
 import jwt
-import hashlib
 import structlog
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils import timezone
+
 
 
 logger = structlog.get_logger(__name__)
@@ -129,13 +128,15 @@ class BaseSessionAuthMiddleware:
         token = auth_header.split(' ')[1]
         try:
             # 1. Decode JWT
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             token_hash = hashlib.sha256(token.encode()).hexdigest()
+
 
             # 2. Check Database Session
             session = self.session_model.objects.filter(token_hash=token_hash).first()
-            
+
             if not session or not session.is_valid:
+
                 return JsonResponse({"error": "Session expired or invalid"}, status=401)
 
             # 3. Attach User Context
@@ -150,8 +151,9 @@ class BaseSessionAuthMiddleware:
 
         except jwt.ExpiredSignatureError:
             return JsonResponse({"error": "Token has expired"}, status=401)
-        except Exception as e:
+        except Exception:
             return JsonResponse({"error": "Invalid token"}, status=401)
+
 
         return self.get_response(request)
 
