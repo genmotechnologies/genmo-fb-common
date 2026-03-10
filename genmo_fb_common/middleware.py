@@ -4,15 +4,14 @@ Django middleware for GenMo services.
 
 import hashlib
 import threading
-from typing import Callable
 import uuid
+from typing import Callable
 
+import jwt
+import structlog
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils import timezone
-import jwt
-import structlog
-
 
 logger = structlog.get_logger(__name__)
 
@@ -116,6 +115,7 @@ class BaseSessionAuthMiddleware:
     Common Middleware to authenticate sessions using JWT and Database.
     Inherit this in your service and provide the Session model.
     """
+
     def __init__(self, get_response, session_model):
         self.get_response = get_response
         self.session_model = session_model
@@ -138,7 +138,6 @@ class BaseSessionAuthMiddleware:
             if not session or not session.is_valid:
                 return JsonResponse({"error": "Session expired or invalid"}, status=401)
 
-
             # 3. Attach User Context
             request.bank_customer_id = session.bank_customer_id
             request.bank_id = session.bank_id
@@ -147,7 +146,7 @@ class BaseSessionAuthMiddleware:
 
             # Update activity
             session.last_activity_at = timezone.now()
-            session.save(update_fields=['last_activity_at'])
+            session.save(update_fields=["last_activity_at"])
 
         except jwt.ExpiredSignatureError:
             return JsonResponse({"error": "Token has expired"}, status=401)
@@ -155,5 +154,3 @@ class BaseSessionAuthMiddleware:
             return JsonResponse({"error": "Invalid token"}, status=401)
 
         return self.get_response(request)
-
-

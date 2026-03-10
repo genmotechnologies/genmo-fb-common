@@ -7,4 +7,3 @@ class SessionTokenAuthentication(authentication.BaseAuthentication):
         if not bank_customer_id:
             return None
         return (None, None)
-
