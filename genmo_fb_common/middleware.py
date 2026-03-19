@@ -2,14 +2,19 @@
 Django middleware for GenMo services.
 """
 
+import hashlib
 import threading
 import uuid
 from typing import Callable
 
+import jwt
 import structlog
-from django.http import HttpRequest, HttpResponse
+from django.conf import settings
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.utils import timezone
 
 logger = structlog.get_logger(__name__)
+
 
 # Thread-local storage for request context
 _request_context = threading.local()
@@ -103,3 +108,49 @@ class RequestLoggingMiddleware:
         )
 
         return response
+
+
+class BaseSessionAuthMiddleware:
+    """
+    Common Middleware to authenticate sessions using JWT and Database.
+    Inherit this in your service and provide the Session model.
+    """
+
+    def __init__(self, get_response, session_model):
+        self.get_response = get_response
+        self.session_model = session_model
+
+    def __call__(self, request):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return self.get_response(request)
+
+        token = auth_header.split(" ")[1]
+        try:
+            # 1. Decode JWT
+            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+            # 2. Check Database Session
+
+            session = self.session_model.objects.filter(token_hash=token_hash).first()
+
+            if not session or not session.is_valid:
+                return JsonResponse({"error": "Session expired or invalid"}, status=401)
+
+            # 3. Attach User Context
+            request.bank_customer_id = session.bank_customer_id
+            request.bank_id = session.bank_id
+            request.session_id = str(session.id)
+            request.current_session = session
+
+            # Update activity
+            session.last_activity_at = timezone.now()
+            session.save(update_fields=["last_activity_at"])
+
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except Exception:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+
+        return self.get_response(request)
