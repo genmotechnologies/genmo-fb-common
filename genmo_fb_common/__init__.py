@@ -16,6 +16,7 @@ from .exceptions import (
     ValidationError,
 )
 from .managers import ActiveManager
+from .middleware import IdentitySessionMiddleware
 from .models import BaseModel
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "ValidationError",
     "NotFoundError",
     "PermissionDeniedError",
+    "IdentitySessionMiddleware",
 ]
