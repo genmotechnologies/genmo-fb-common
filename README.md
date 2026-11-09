@@ -49,6 +49,37 @@ payload = EventPayload(
 publish_event(payload)
 ```
 
+### Ownership (FC-06)
+A parent reaches only their own family's children, a child only themselves. The caller comes
+from `IdentitySessionMiddleware` (`request.bank_customer_id`); the family comes from
+family-service (`GET /api/v1/families/` with the caller's token): one call per request at most,
+cached 60 seconds per token, and no call when callers ask about themselves. Set
+`FAMILY_SERVICE_URL` (default `http://family-service:8002`).
+
+```python
+from genmo_fb_common.ownership import (
+    ensure_parent_permission,
+    ensure_self_or_own_child,
+    get_family_context,
+)
+
+child = ensure_self_or_own_child(request, bank_customer_id=child_id)  # None when it's the caller
+ensure_parent_permission(request, "approve")  # FA-06: approve, limits_and_cards, send_money
+family = get_family_context(request)  # family_id, role, permissions, members, children
+```
+
+DRF permission classes (`genmo_fb_common.permissions`): `IsParent`, `IsChild`,
+`IsParentOrReadOnly`, `IsFamilyMember` and the object-level `IsSelfOrOwnChild` /
+`IsOwnerOrParent` (the owner is `obj.bank_customer_id`, or the view's
+`get_owner_bank_customer_id(obj)`).
+
+| Answer | When |
+|---|---|
+| `403 NOT_YOUR_CHILD` | somebody who is not the caller or their own child (Parent A asking for Parent B's child) |
+| `403 FAMILY_PERMISSION_MISSING` | a co-parent without the FA-06 permission for the action |
+| `503 FAMILY_UNAVAILABLE` | family-service unreachable: a child can't be confirmed, so nothing is shown |
+| `401` | no signed-in caller |
+
 ## Updating genmo-fb-common
 
 To add new functionality:
