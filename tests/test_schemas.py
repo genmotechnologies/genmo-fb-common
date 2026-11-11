@@ -142,3 +142,63 @@ def test_what_the_services_really_send_is_allowed():
     schemas.example_event("goal.created", deadline="2026-11-11")  # a date, not a time
     schemas.example_event("goal.created", deadline="2026-11-11T08:00:00Z")
     schemas.example_event("goal.created", deadline=None)
+
+
+class TestConsumerContract:
+    def test_fields_the_schema_declares_pass(self):
+        schemas.check_consumer_reads(
+            "transfer.completed",
+            ["from_bank_customer_id", "amount", "category"],
+            always=["from_bank_customer_id", "amount"],
+        )
+
+    def test_a_renamed_field_is_caught(self):
+        with pytest.raises(schemas.EventSchemaError, match="sender_bank_customer_id"):
+            schemas.check_consumer_reads(
+                "transfer.completed", ["sender_bank_customer_id"]
+            )
+
+    def test_a_field_the_publisher_may_leave_null_must_not_be_indexed(self):
+        with pytest.raises(schemas.EventSchemaError, match="category"):
+            schemas.check_consumer_reads(
+                "transfer.completed", ["category"], always=["category"]
+            )
+
+    def test_a_field_the_publisher_may_omit_must_not_be_indexed(self):
+        with pytest.raises(schemas.EventSchemaError, match="child_bank_customer_id"):
+            schemas.check_consumer_reads(
+                "chore.instance.expired",
+                ["child_bank_customer_id"],
+                always=["child_bank_customer_id"],
+            )
+
+    def test_the_consumers_that_exist_today(self):
+        """What limits-service and family-service read now, from their code."""
+        schemas.check_consumer_reads(
+            "transfer.completed",
+            [
+                "transfer_type",
+                "category",
+                "transfer_id",
+                "from_bank_customer_id",
+                "amount",
+                "family_id",
+                "currency",
+                "completed_at",
+            ],
+        )
+        schemas.check_consumer_reads(
+            "bank.card.authorized",
+            ["channel", "bank_customer_id", "amount", "currency", "occurred_at"],
+            always=["channel", "bank_customer_id", "amount", "currency"],
+        )
+        schemas.check_consumer_reads(
+            "user.session.created", ["bank_customer_id"], always=["bank_customer_id"]
+        )
+
+    def test_account_service_reads_fields_no_transfer_event_has(self):
+        """account-service reads source_wallet_id and destination_wallet_id: unmatched."""
+        with pytest.raises(schemas.EventSchemaError, match="source_wallet_id"):
+            schemas.check_consumer_reads(
+                "transfer.completed", ["source_wallet_id", "destination_wallet_id"]
+            )

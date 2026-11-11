@@ -120,3 +120,37 @@ def example_event(event_type: str, **overrides) -> dict:
     ).to_dict()
     validate(event)
     return event
+
+
+def check_consumer_reads(event_type: str, fields, *, always=()) -> None:
+    """
+    The contract test between a publisher and one consumer (FC-04): call it in the
+    consumer's tests with the `data` fields the consumer reads. It raises EventSchemaError if
+    the schema does not declare one of them, which is how a renamed or invented field
+    (`sender_bank_customer_id` against `from_bank_customer_id`) is caught. Fields the
+    consumer indexes without a default belong in `always`: they must be required and not
+    nullable, or the consumer can fail on a valid event.
+    """
+    data = get_schema(event_type)["data"]
+    properties = data["properties"]
+    unknown = sorted(set(fields) - set(properties))
+    if unknown:
+        raise EventSchemaError(
+            f"{event_type} has no field {', '.join(unknown)}; it declares "
+            f"{', '.join(sorted(properties))}"
+        )
+    fragile = sorted(
+        name
+        for name in always
+        if name not in data["required"] or "null" in _types(properties[name])
+    )
+    if fragile:
+        raise EventSchemaError(
+            f"{event_type}: {', '.join(fragile)} may be missing or null, "
+            "so the consumer must not index it without a default"
+        )
+
+
+def _types(schema: dict) -> list:
+    kind = schema.get("type", [])
+    return kind if isinstance(kind, list) else [kind]

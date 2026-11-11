@@ -77,9 +77,15 @@ def on_message(body):
 
 **Contract tests.** Publishers validate what they send (`publish_event` and `enqueue_event`
 do it; `genmo_fb_common.schemas.validate(event)` does it in a test). Consumers test
-themselves against `genmo_fb_common.schemas.example_event("chore.instance.approved")` and
-read only fields the schema declares. `publish_event` still sends straight away and returns
+themselves against `genmo_fb_common.schemas.example_event("chore.instance.approved")`, and
+name the fields they read with `schemas.check_consumer_reads(event_type, fields, always=...)`,
+which fails when a field is not in the schema (a renamed or invented one) or may be missing or
+null where the consumer indexes it. `publish_event` still sends straight away and returns
 `False` if the bus is down: use it only for notices that may be lost.
+
+Tests: `pytest` runs on SQLite. Set `GFC_TEST_DATABASE_URL=postgres://user:pass@host:5432/db` to
+run on PostgreSQL, and `GFC_TEST_RABBITMQ_URL=amqp://user:pass@host:5672/` to also run the
+real-broker outbox test (bus down, then up: delivered once).
 
 `timestamp` is the old name of `occurred_at`. It is still sent for one release and
 `parse_event` accepts either, so a publisher and its consumers can be upgraded separately.
