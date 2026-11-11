@@ -52,7 +52,10 @@
         "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
       },
       "reward_points": {
-        "type": "integer"
+        "type": [
+          "integer",
+          "null"
+        ]
       },
       "reward_paid": {
         "type": "boolean"

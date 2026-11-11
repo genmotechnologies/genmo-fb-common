@@ -52,7 +52,10 @@
         "pattern": "^[A-Z]{3}$"
       },
       "reward_points": {
-        "type": "integer"
+        "type": [
+          "integer",
+          "null"
+        ]
       },
       "reward_text": {
         "type": [

@@ -133,3 +133,12 @@ def test_an_event_built_by_the_envelope_class_passes_its_schema():
         schemas.get_schema("limits.exceeded")["examples"][0],
     )
     schemas.validate(payload.to_dict())
+
+
+def test_what_the_services_really_send_is_allowed():
+    """Found by running every service's tests and checking the events they build."""
+    schemas.example_event("chore.instance.approved", reward_points=None)
+    schemas.example_event("chore.reward.paid", reward_points=None)
+    schemas.example_event("goal.created", deadline="2026-11-11")  # a date, not a time
+    schemas.example_event("goal.created", deadline="2026-11-11T08:00:00Z")
+    schemas.example_event("goal.created", deadline=None)
