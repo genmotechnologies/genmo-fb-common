@@ -2,7 +2,11 @@
 Pytest configuration and fixtures.
 """
 
+import json
+
 import pytest
+
+from genmo_fb_common import schemas
 
 
 @pytest.fixture
@@ -32,3 +36,28 @@ def family_service():
     ) as fake:
         yield fake
     cache.clear()
+
+
+@pytest.fixture
+def widgets(tmp_path, monkeypatch):
+    """One small schema, `widget.made` from widget-service, in place of the real ones."""
+    schema = {
+        "event_type": "widget.made",
+        "version": 1,
+        "source_service": "widget-service",
+        "description": "A widget was made.",
+        "data": {
+            "type": "object",
+            "required": ["widget_id"],
+            "properties": {"widget_id": {"type": "string"}},
+            "additionalProperties": False,
+        },
+        "examples": [{"widget_id": "w-1"}],
+    }
+    (tmp_path / "widget.made.json").write_text(json.dumps(schema), encoding="utf-8")
+    monkeypatch.setattr(schemas, "SCHEMA_DIR", tmp_path)
+    schemas._load.cache_clear()
+    schemas._validator.cache_clear()
+    yield
+    schemas._load.cache_clear()
+    schemas._validator.cache_clear()

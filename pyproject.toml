@@ -28,6 +28,7 @@ dependencies = [
     "httpx>=0.25,<1.0",
     "structlog>=23.0",
     "PyJWT[crypto]>=2.8,<3.0",
+    "jsonschema>=4.18",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +44,9 @@ dev = [
 
 [project.urls]
 Repository = "https://github.com/genmotechnologies/genmo-fb-common"
+
+[tool.setuptools.package-data]
+genmo_fb_common = ["event_schemas/*.json"]
 
 [tool.setuptools.packages.find]
 where = ["."]
