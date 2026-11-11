@@ -8,9 +8,9 @@ from urllib.parse import urljoin
 
 import httpx
 import structlog
-from django.conf import settings
 
 from genmo_fb_common.exceptions import ServiceUnavailableError
+from genmo_fb_common.middleware import get_current_request_id
 
 logger = structlog.get_logger(__name__)
 
@@ -62,8 +62,9 @@ class ServiceClient:
         if self.auth_token:
             headers["Authorization"] = f"Bearer {self.auth_token}"
 
-        # Forward request ID for tracing
-        request_id = getattr(settings, "CURRENT_REQUEST_ID", None)
+        # Forward the request ID RequestIDMiddleware set for this request, so one
+        # call can be followed across services
+        request_id = get_current_request_id()
         if request_id:
             headers["X-Request-ID"] = request_id
 
