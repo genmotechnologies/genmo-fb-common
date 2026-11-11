@@ -37,17 +37,52 @@ class LimitsClient(ServiceClient):
         return self.post('/api/v1/limits/validate/', {'amount': amount})
 ```
 
-### Event Publishing
-```python
-from genmo_fb_common.events import EventPayload, publish_event
+### Events (FC-01 to FC-04)
 
-payload = EventPayload(
-    event_type="transfer.completed",
-    source_service="transfer-service",
-    data={"transfer_id": "123", "amount": "50.00"}
-)
-publish_event(payload)
+Every event has the same envelope: `event_id`, `event_type`, `occurred_at` (UTC), `version`,
+`source_service` and a `data` block. Each event type has one schema in
+`genmo_fb_common/event_schemas/<event_type>.json`, and that file is the single source for
+the event's name and fields, for the publisher and every consumer.
+
+**Publish from the outbox.** An event that reports a change is written to your own database
+in the same transaction as the change, and a worker sends it, so it is not lost if the
+message bus is down:
+
+```python
+# settings.py
+INSTALLED_APPS = [..., "genmo_fb_common.outbox"]     # then: manage.py migrate
+GENMO_EVENT_SCHEMA_ENFORCEMENT = "error"             # "warn" (default) logs, "off" skips
+
+from genmo_fb_common.events import enqueue_event
+
+with transaction.atomic():
+    chore.approve()
+    enqueue_event("chore.instance.approved", {...}, "chores-service")
 ```
+
+Run the worker beside the web process: `python manage.py publish_outbox` (a loop, `--once`
+for one round). It keeps trying while the bus is down and sends each event with the
+broker's confirmation. Delivery is at-least-once: an event can arrive twice, so consumers
+must handle repeats.
+
+**Consume once.** Record the `event_id`s a consumer has handled and ignore repeats:
+
+```python
+from genmo_fb_common.consumers import handle_once, parse_event
+
+def on_message(body):
+    event = parse_event(body)                      # checks the schema, reads old or new envelope
+    handle_once("gamification.chore-rewards", event, pay_the_reward)
+```
+
+**Contract tests.** Publishers validate what they send (`publish_event` and `enqueue_event`
+do it; `genmo_fb_common.schemas.validate(event)` does it in a test). Consumers test
+themselves against `genmo_fb_common.schemas.example_event("chore.instance.approved")` and
+read only fields the schema declares. `publish_event` still sends straight away and returns
+`False` if the bus is down: use it only for notices that may be lost.
+
+`timestamp` is the old name of `occurred_at`. It is still sent for one release and
+`parse_event` accepts either, so a publisher and its consumers can be upgraded separately.
 
 ### Ownership (FC-06)
 A parent reaches only their own family's children, a child only themselves. The caller comes
