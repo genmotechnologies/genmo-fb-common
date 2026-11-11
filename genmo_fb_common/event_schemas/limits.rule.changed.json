@@ -1,0 +1,94 @@
+{
+  "event_type": "limits.rule.changed",
+  "version": 1,
+  "source_service": "limits-service",
+  "description": "A limit rule was created, updated or deleted.",
+  "data": {
+    "type": "object",
+    "required": [
+      "action",
+      "rule_id",
+      "family_id",
+      "applies_to_bank_customer_id",
+      "applies_to_member_id",
+      "limit_type",
+      "category",
+      "max_amount",
+      "currency",
+      "is_active",
+      "changed_by_bank_customer_id"
+    ],
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "created",
+          "updated",
+          "deleted"
+        ]
+      },
+      "rule_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "applies_to_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "applies_to_member_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "limit_type": {
+        "type": "string"
+      },
+      "category": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "max_amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "is_active": {
+        "type": "boolean"
+      },
+      "changed_by_bank_customer_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "action": "created",
+      "rule_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "applies_to_bank_customer_id": "CUST-P1",
+      "applies_to_member_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "limit_type": "example",
+      "category": "example",
+      "max_amount": "50.00",
+      "currency": "MRU",
+      "is_active": true,
+      "changed_by_bank_customer_id": "CUST-P1"
+    }
+  ]
+}

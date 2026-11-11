@@ -1,0 +1,70 @@
+{
+  "event_type": "bank.transfer.settled",
+  "version": 1,
+  "source_service": "bank-adapter-service",
+  "description": "A pending transfer reached its final status.",
+  "data": {
+    "type": "object",
+    "required": [
+      "connector",
+      "bank_event_id",
+      "occurred_at",
+      "idempotency_key",
+      "status"
+    ],
+    "properties": {
+      "connector": {
+        "type": "string"
+      },
+      "bank_event_id": {
+        "type": "string"
+      },
+      "occurred_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "idempotency_key": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "completed",
+          "failed"
+        ]
+      },
+      "transaction_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "failure_code": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "INSUFFICIENT_FUNDS",
+          "ACCOUNT_BLOCKED",
+          "ACCOUNT_NOT_FOUND",
+          "CURRENCY_MISMATCH",
+          "LIMIT_EXCEEDED",
+          null
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "connector": "example",
+      "bank_event_id": "example",
+      "occurred_at": "2026-10-22T09:30:00Z",
+      "idempotency_key": "example",
+      "status": "completed",
+      "transaction_id": "example",
+      "failure_code": "INSUFFICIENT_FUNDS"
+    }
+  ]
+}

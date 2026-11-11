@@ -1,0 +1,106 @@
+{
+  "event_type": "bank.card.status_changed",
+  "version": 1,
+  "source_service": "bank-adapter-service",
+  "description": "A card was blocked, unblocked, cancelled or replaced.",
+  "data": {
+    "type": "object",
+    "required": [
+      "connector",
+      "bank_event_id",
+      "occurred_at",
+      "bank_card_id",
+      "bank_account_id",
+      "bank_customer_id",
+      "change",
+      "new_status",
+      "initiated_by"
+    ],
+    "properties": {
+      "connector": {
+        "type": "string"
+      },
+      "bank_event_id": {
+        "type": "string"
+      },
+      "occurred_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "bank_card_id": {
+        "type": "string"
+      },
+      "bank_account_id": {
+        "type": "string"
+      },
+      "bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "change": {
+        "type": "string",
+        "enum": [
+          "blocked",
+          "unblocked",
+          "cancelled",
+          "replaced"
+        ]
+      },
+      "new_status": {
+        "type": "string",
+        "enum": [
+          "active",
+          "blocked",
+          "cancelled"
+        ]
+      },
+      "initiated_by": {
+        "type": "string",
+        "enum": [
+          "genmo",
+          "bank"
+        ]
+      },
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "customer_request",
+          "suspected_fraud",
+          "lost",
+          "stolen",
+          "damaged",
+          "expiring",
+          "expired",
+          "closed",
+          "other",
+          null
+        ]
+      },
+      "replaced_by_card_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "connector": "example",
+      "bank_event_id": "example",
+      "occurred_at": "2026-10-22T09:30:00Z",
+      "bank_card_id": "example",
+      "bank_account_id": "example",
+      "bank_customer_id": "CUST-P1",
+      "change": "blocked",
+      "new_status": "active",
+      "initiated_by": "genmo",
+      "reason": "customer_request",
+      "replaced_by_card_id": "example"
+    }
+  ]
+}
