@@ -4,7 +4,10 @@ Utility functions for GenMo services.
 
 import secrets
 import string
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from typing import Optional, Union
+
+from genmo_fb_common.bank_config import bank_today, format_amount, utc_now
 
 
 def generate_invite_code(length: int = 8) -> str:
@@ -63,11 +66,11 @@ def mask_phone_number(phone: str) -> str:
     return phone[:4] + "*" * (len(phone) - 8) + phone[-4:]
 
 
-def calculate_age(birth_date: datetime) -> int:
+def calculate_age(birth_date: Union[date, datetime]) -> int:
     """
-    Calculate age from birth date.
+    Age in whole years, as of today at the bank (FC-09: the bank's date, not the server's).
     """
-    today = datetime.today()
+    today = bank_today()
     return (
         today.year
         - birth_date.year
@@ -75,37 +78,35 @@ def calculate_age(birth_date: datetime) -> int:
     )
 
 
-def is_minor(birth_date: datetime, adult_age: int = 18) -> bool:
+def is_minor(birth_date: Union[date, datetime], adult_age: int = 18) -> bool:
     """
     Check if person is a minor based on birth date.
     """
     return calculate_age(birth_date) < adult_age
 
 
-def format_currency(amount, currency: str = "SAR") -> str:
+def format_currency(amount, currency: Optional[str] = None) -> str:
     """
-    Format amount as currency string.
+    The amount as people read it, in the bank's currency unless another is given (FC-09).
+    Same as `bank_config.format_amount`; a float is refused.
 
-    Example: format_currency(1234.56) -> "SAR 1,234.56"
+    Example: format_currency("1234.56") -> "1,234.56 MRU"
     """
-    return f"{currency} {amount:,.2f}"
+    return format_amount(amount, currency)
 
 
 def get_expiry_time(hours: int = 24) -> datetime:
     """
-    Get expiry datetime from now.
-
-    Args:
-        hours: Number of hours until expiry
-
-    Returns:
-        Datetime object for expiry
+    The moment `hours` from now, in UTC with its time zone attached.
     """
-    return datetime.utcnow() + timedelta(hours=hours)
+    return utc_now() + timedelta(hours=hours)
 
 
 def is_expired(expiry_time: datetime) -> bool:
     """
-    Check if a datetime has passed.
+    Check if a datetime has passed. A datetime without a time zone is read as UTC, which
+    is what `get_expiry_time` used to return.
     """
-    return datetime.utcnow() > expiry_time
+    if expiry_time.tzinfo is None:
+        expiry_time = expiry_time.replace(tzinfo=timezone.utc)
+    return utc_now() > expiry_time

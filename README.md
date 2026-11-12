@@ -49,6 +49,39 @@ payload = EventPayload(
 publish_event(payload)
 ```
 
+### Bank configuration (FC-09)
+The bank's currency, time zone and languages come from settings, never from code.
+
+| Setting | Default |
+|---|---|
+| `BANK_CURRENCY` | `MRU` |
+| `BANK_CURRENCY_DECIMALS` | the currency's ISO number of decimals (2 for MRU, 3 for KWD, 0 for JPY) |
+| `BANK_TIMEZONE` | `Africa/Nouakchott` |
+| `BANK_WEEK_START` | `0` (Monday; `6` is Sunday) |
+| `BANK_LANGUAGES` | `("en", "fr", "ar")` |
+| `BANK_DEFAULT_LANGUAGE` | `en` |
+
+```python
+from genmo_fb_common.bank_config import (
+    amount_str, bank_month_start, bank_today, bank_week_start, format_amount,
+    round_amount, to_amount, utc_now,
+)
+
+amount = to_amount("50")               # Decimal("50.00"); a float is a TypeError
+amount_str(amount)                     # "50.00"          for events and JSON
+format_amount(amount, language="fr")   # "50,00 MRU"      for text people read
+round_amount("33.333")                 # Decimal("33.33") rounding is always on purpose
+
+utc_now()            # now in UTC, time zone attached (no datetime.utcnow())
+bank_today()         # today's date at the bank, which is not always UTC's date
+bank_week_start()    # when this week began at the bank, in UTC (also bank_day_start,
+bank_month_start()   # bank_month_start): limit periods, payout days, streaks
+```
+
+Amounts are `Decimal`, `int` or `str`, never `float`. `to_amount` refuses more decimals than
+the currency has instead of rounding them away. `resolve_language("fr-FR")` gives the offered
+language or the bank's default, and `is_rtl("ar")` is true.
+
 ### Ownership (FC-06)
 A parent reaches only their own family's children, a child only themselves. The caller comes
 from `IdentitySessionMiddleware` (`request.bank_customer_id`); the family comes from
