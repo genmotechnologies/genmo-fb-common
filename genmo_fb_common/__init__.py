@@ -4,7 +4,7 @@ GenMo Family Banking - Common Library
 Shared utilities, base classes, and helpers for all GenMo services.
 """
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 from .clients import ServiceClient
 from .events import EventPayload, publish_event
