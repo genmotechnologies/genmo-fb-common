@@ -5,7 +5,7 @@ Shared library for GenMo Family Banking platform. This is a pip-installable Pyth
 ## Installation
 ```bash
 # From GitHub (recommended for services). Always pin a release tag, never main.
-pip install git+https://github.com/genmotechnologies/genmo-fb-common.git@v1.2.1
+pip install git+https://github.com/genmotechnologies/genmo-fb-common.git@v1.3.0
 
 # For local development (editable mode)
 pip install -e /path/to/genmo-fb-common
