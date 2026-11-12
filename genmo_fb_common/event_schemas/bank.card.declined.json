@@ -1,0 +1,133 @@
+{
+  "event_type": "bank.card.declined",
+  "version": 1,
+  "source_service": "bank-adapter-service",
+  "description": "A card payment was declined by the bank.",
+  "data": {
+    "type": "object",
+    "required": [
+      "connector",
+      "bank_event_id",
+      "occurred_at",
+      "transaction_id",
+      "bank_card_id",
+      "bank_account_id",
+      "bank_customer_id",
+      "amount",
+      "currency",
+      "channel",
+      "decline_reason"
+    ],
+    "properties": {
+      "connector": {
+        "type": "string"
+      },
+      "bank_event_id": {
+        "type": "string"
+      },
+      "occurred_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "transaction_id": {
+        "type": "string"
+      },
+      "bank_card_id": {
+        "type": "string"
+      },
+      "bank_account_id": {
+        "type": "string"
+      },
+      "bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+\\.[0-9]{2}$"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "channel": {
+        "type": "string",
+        "enum": [
+          "pos",
+          "online",
+          "atm",
+          "qr",
+          "contactless"
+        ]
+      },
+      "decline_reason": {
+        "type": "string",
+        "enum": [
+          "INSUFFICIENT_FUNDS",
+          "ACCOUNT_BLOCKED",
+          "CARD_BLOCKED",
+          "CARD_CANCELLED",
+          "CHANNEL_DISABLED",
+          "LIMIT_EXCEEDED",
+          "INVALID_PIN",
+          "PIN_LOCKED"
+        ]
+      },
+      "limit_type": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "per_transaction",
+          "daily",
+          "weekly",
+          "monthly",
+          "atm_daily",
+          null
+        ]
+      },
+      "merchant": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "connector": "example",
+      "bank_event_id": "example",
+      "occurred_at": "2026-10-22T09:30:00Z",
+      "transaction_id": "example",
+      "bank_card_id": "example",
+      "bank_account_id": "example",
+      "bank_customer_id": "CUST-P1",
+      "amount": "50.00",
+      "currency": "MRU",
+      "channel": "pos",
+      "decline_reason": "INSUFFICIENT_FUNDS",
+      "limit_type": "per_transaction",
+      "merchant": {
+        "name": "PlayStore",
+        "category": "gaming"
+      }
+    }
+  ]
+}

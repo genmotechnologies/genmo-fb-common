@@ -1,0 +1,36 @@
+{
+  "event_type": "chore.deleted",
+  "version": 1,
+  "source_service": "chores-service",
+  "description": "A chore was deleted.",
+  "data": {
+    "type": "object",
+    "required": [
+      "chore_id",
+      "family_id",
+      "deleted_by_bank_customer_id"
+    ],
+    "properties": {
+      "chore_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "deleted_by_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "chore_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "deleted_by_bank_customer_id": "CUST-P1"
+    }
+  ]
+}

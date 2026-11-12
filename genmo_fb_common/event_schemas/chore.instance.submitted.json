@@ -1,0 +1,61 @@
+{
+  "event_type": "chore.instance.submitted",
+  "version": 1,
+  "source_service": "chores-service",
+  "description": "A child said a chore is done.",
+  "data": {
+    "type": "object",
+    "required": [
+      "instance_id",
+      "chore_id",
+      "chore_title",
+      "family_id",
+      "assigned_to_bank_customer_id",
+      "submitted_at",
+      "has_photo_proof"
+    ],
+    "properties": {
+      "instance_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "chore_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "chore_title": {
+        "type": "string"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "assigned_to_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "submitted_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "has_photo_proof": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "instance_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "chore_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "chore_title": "example",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "assigned_to_bank_customer_id": "CUST-P1",
+      "submitted_at": "2026-10-22T09:30:00Z",
+      "has_photo_proof": true
+    }
+  ]
+}

@@ -4,47 +4,39 @@ GenMo Family Banking - Common Library
 Shared utilities, base classes, and helpers for all GenMo services.
 """
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
-from .clients import ServiceClient
-from .events import EventPayload, publish_event
-from .exceptions import (
-    GenMoError,
-    NotFoundError,
-    PermissionDeniedError,
-    ServiceUnavailableError,
-    ValidationError,
-)
-from .managers import ActiveManager
-from .middleware import IdentitySessionMiddleware
-from .models import BaseModel
-from .ownership import (
-    FamilyContext,
-    FamilyPermissionMissing,
-    FamilyUnavailable,
-    NotYourChild,
-    ensure_parent_permission,
-    ensure_self_or_own_child,
-    get_family_context,
-)
+# Exports are loaded on first use, not at import: "genmo_fb_common.outbox" is a Django app,
+# so Django imports this package while it is still loading apps, and importing a model
+# module (BaseModel) at that point fails.
+_EXPORTS = {
+    "ServiceClient": ".clients",
+    "EventPayload": ".events",
+    "publish_event": ".events",
+    "enqueue_event": ".events",
+    "GenMoError": ".exceptions",
+    "NotFoundError": ".exceptions",
+    "PermissionDeniedError": ".exceptions",
+    "ServiceUnavailableError": ".exceptions",
+    "ValidationError": ".exceptions",
+    "ActiveManager": ".managers",
+    "IdentitySessionMiddleware": ".middleware",
+    "BaseModel": ".models",
+    "FamilyContext": ".ownership",
+    "FamilyPermissionMissing": ".ownership",
+    "FamilyUnavailable": ".ownership",
+    "NotYourChild": ".ownership",
+    "ensure_parent_permission": ".ownership",
+    "ensure_self_or_own_child": ".ownership",
+    "get_family_context": ".ownership",
+}
 
-__all__ = [
-    "BaseModel",
-    "ActiveManager",
-    "ServiceClient",
-    "publish_event",
-    "EventPayload",
-    "GenMoError",
-    "ServiceUnavailableError",
-    "ValidationError",
-    "NotFoundError",
-    "PermissionDeniedError",
-    "IdentitySessionMiddleware",
-    "FamilyContext",
-    "NotYourChild",
-    "FamilyPermissionMissing",
-    "FamilyUnavailable",
-    "get_family_context",
-    "ensure_self_or_own_child",
-    "ensure_parent_permission",
-]
+__all__ = sorted(_EXPORTS)
+
+
+def __getattr__(name):
+    if name in _EXPORTS:
+        from importlib import import_module
+
+        return getattr(import_module(_EXPORTS[name], __name__), name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

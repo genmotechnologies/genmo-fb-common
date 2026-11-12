@@ -1,0 +1,36 @@
+{
+  "event_type": "user.session.ended",
+  "version": 1,
+  "source_service": "identity-service",
+  "description": "A session ended.",
+  "data": {
+    "type": "object",
+    "required": [
+      "session_id",
+      "bank_customer_id",
+      "ended_at"
+    ],
+    "properties": {
+      "session_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "ended_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "session_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "bank_customer_id": "CUST-P1",
+      "ended_at": "2026-10-22T09:30:00Z"
+    }
+  ]
+}

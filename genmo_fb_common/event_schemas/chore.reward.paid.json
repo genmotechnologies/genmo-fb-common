@@ -1,0 +1,89 @@
+{
+  "event_type": "chore.reward.paid",
+  "version": 1,
+  "source_service": "chores-service",
+  "description": "A chore reward was paid or recorded.",
+  "data": {
+    "type": "object",
+    "required": [
+      "instance_id",
+      "chore_id",
+      "family_id",
+      "child_bank_customer_id",
+      "reward_type",
+      "reward_amount",
+      "reward_currency",
+      "reward_points",
+      "reward_text",
+      "transaction_id"
+    ],
+    "properties": {
+      "instance_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "chore_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "reward_type": {
+        "type": "string"
+      },
+      "reward_amount": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "reward_currency": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[A-Z]{3}$"
+      },
+      "reward_points": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "reward_text": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "transaction_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "instance_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "chore_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-P1",
+      "reward_type": "example",
+      "reward_amount": "50.00",
+      "reward_currency": "MRU",
+      "reward_points": 10,
+      "reward_text": "example",
+      "transaction_id": "example"
+    }
+  ]
+}

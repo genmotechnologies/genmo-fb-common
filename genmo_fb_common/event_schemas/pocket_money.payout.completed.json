@@ -1,0 +1,90 @@
+{
+  "event_type": "pocket_money.payout.completed",
+  "version": 1,
+  "source_service": "pocket-money-service",
+  "description": "A scheduled payout was paid.",
+  "data": {
+    "type": "object",
+    "required": [
+      "payout_id",
+      "rule_id",
+      "family_id",
+      "parent_bank_customer_id",
+      "child_bank_customer_id",
+      "child_name",
+      "amount",
+      "currency",
+      "transaction_id",
+      "completed_at",
+      "is_instant"
+    ],
+    "properties": {
+      "payout_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "rule_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "parent_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "child_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "transaction_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "completed_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "is_instant": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "payout_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "rule_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "parent_bank_customer_id": "CUST-P1",
+      "child_bank_customer_id": "CUST-P1",
+      "child_name": "example",
+      "amount": "50.00",
+      "currency": "MRU",
+      "transaction_id": "example",
+      "completed_at": "2026-10-22T09:30:00Z",
+      "is_instant": true
+    }
+  ]
+}

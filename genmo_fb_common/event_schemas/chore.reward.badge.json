@@ -1,0 +1,46 @@
+{
+  "event_type": "chore.reward.badge",
+  "version": 1,
+  "source_service": "chores-service",
+  "description": "A badge earned for a chore.",
+  "data": {
+    "type": "object",
+    "required": [
+      "child_bank_customer_id",
+      "badge_type",
+      "reason",
+      "chore_instance_id",
+      "timestamp"
+    ],
+    "properties": {
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "badge_type": {
+        "type": "string"
+      },
+      "reason": {
+        "type": "string"
+      },
+      "chore_instance_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "timestamp": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "child_bank_customer_id": "CUST-P1",
+      "badge_type": "example",
+      "reason": "example",
+      "chore_instance_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "timestamp": "2026-10-22T09:30:00Z"
+    }
+  ]
+}

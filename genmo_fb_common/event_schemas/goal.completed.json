@@ -1,0 +1,90 @@
+{
+  "event_type": "goal.completed",
+  "version": 1,
+  "source_service": "saving-goals-service",
+  "description": "A goal reached its target.",
+  "data": {
+    "type": "object",
+    "required": [
+      "goal_id",
+      "goal_name",
+      "family_id",
+      "owner_bank_customer_id",
+      "owner_member_id",
+      "owner_name",
+      "target_amount",
+      "final_amount",
+      "currency",
+      "parent_bank_customer_ids",
+      "completed_at"
+    ],
+    "properties": {
+      "goal_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "goal_name": {
+        "type": "string"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "owner_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "owner_member_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "owner_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "target_amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "final_amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "parent_bank_customer_ids": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "completed_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "goal_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "goal_name": "example",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "owner_bank_customer_id": "CUST-P1",
+      "owner_member_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "owner_name": "example",
+      "target_amount": "50.00",
+      "final_amount": "50.00",
+      "currency": "MRU",
+      "parent_bank_customer_ids": [
+        "CUST-P1",
+        "CUST-P2"
+      ],
+      "completed_at": "2026-10-22T09:30:00Z"
+    }
+  ]
+}

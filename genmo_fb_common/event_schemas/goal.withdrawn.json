@@ -1,0 +1,69 @@
+{
+  "event_type": "goal.withdrawn",
+  "version": 1,
+  "source_service": "saving-goals-service",
+  "description": "Money was taken out of a goal.",
+  "data": {
+    "type": "object",
+    "required": [
+      "request_id",
+      "goal_id",
+      "family_id",
+      "child_bank_customer_id",
+      "amount",
+      "currency",
+      "transfer_id",
+      "withdrawn_at"
+    ],
+    "properties": {
+      "request_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "goal_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "amount": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "transfer_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "withdrawn_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "request_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "goal_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-P1",
+      "amount": "50.00",
+      "currency": "MRU",
+      "transfer_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "withdrawn_at": "2026-10-22T09:30:00Z"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "event_type": "family.invite.created",
+  "version": 1,
+  "source_service": "family-service",
+  "description": "A co-parent invite was created.",
+  "data": {
+    "type": "object",
+    "required": [
+      "family_id",
+      "invite_id",
+      "invite_code",
+      "invited_role",
+      "invited_by_bank_customer_id",
+      "invited_bank_customer_id",
+      "expires_at",
+      "created_at"
+    ],
+    "properties": {
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "invite_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "invite_code": {
+        "type": "string"
+      },
+      "invited_role": {
+        "type": "string"
+      },
+      "invited_by_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "invited_bank_customer_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1
+      },
+      "expires_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      },
+      "created_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "invite_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "invite_code": "example",
+      "invited_role": "example",
+      "invited_by_bank_customer_id": "CUST-P1",
+      "invited_bank_customer_id": "CUST-P1",
+      "expires_at": "2026-10-22T09:30:00Z",
+      "created_at": "2026-10-22T09:30:00Z"
+    }
+  ]
+}

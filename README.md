@@ -5,7 +5,7 @@ Shared library for GenMo Family Banking platform. This is a pip-installable Pyth
 ## Installation
 ```bash
 # From GitHub (recommended for services). Always pin a release tag, never main.
-pip install git+https://github.com/genmotechnologies/genmo-fb-common.git@v1.2.1
+pip install git+https://github.com/genmotechnologies/genmo-fb-common.git@v1.3.0
 
 # For local development (editable mode)
 pip install -e /path/to/genmo-fb-common
@@ -37,50 +37,58 @@ class LimitsClient(ServiceClient):
         return self.post('/api/v1/limits/validate/', {'amount': amount})
 ```
 
-### Event Publishing
-```python
-from genmo_fb_common.events import EventPayload, publish_event
+### Events (FC-01 to FC-04)
 
-payload = EventPayload(
-    event_type="transfer.completed",
-    source_service="transfer-service",
-    data={"transfer_id": "123", "amount": "50.00"}
-)
-publish_event(payload)
-```
+Every event has the same envelope: `event_id`, `event_type`, `occurred_at` (UTC), `version`,
+`source_service` and a `data` block. Each event type has one schema in
+`genmo_fb_common/event_schemas/<event_type>.json`, and that file is the single source for
+the event's name and fields, for the publisher and every consumer.
 
-### Bank configuration (FC-09)
-The bank's currency, time zone and languages come from settings, never from code.
-
-| Setting | Default |
-|---|---|
-| `BANK_CURRENCY` | `MRU` |
-| `BANK_CURRENCY_DECIMALS` | the currency's ISO number of decimals (2 for MRU, 3 for KWD, 0 for JPY) |
-| `BANK_TIMEZONE` | `Africa/Nouakchott` |
-| `BANK_WEEK_START` | `0` (Monday; `6` is Sunday) |
-| `BANK_LANGUAGES` | `("en", "fr", "ar")` |
-| `BANK_DEFAULT_LANGUAGE` | `en` |
+**Publish from the outbox.** An event that reports a change is written to your own database
+in the same transaction as the change, and a worker sends it, so it is not lost if the
+message bus is down:
 
 ```python
-from genmo_fb_common.bank_config import (
-    amount_str, bank_month_start, bank_today, bank_week_start, format_amount,
-    round_amount, to_amount, utc_now,
-)
+# settings.py
+INSTALLED_APPS = [..., "genmo_fb_common.outbox"]     # then: manage.py migrate
+GENMO_EVENT_SCHEMA_ENFORCEMENT = "error"             # "warn" (default) logs, "off" skips
 
-amount = to_amount("50")               # Decimal("50.00"); a float is a TypeError
-amount_str(amount)                     # "50.00"          for events and JSON
-format_amount(amount, language="fr")   # "50,00 MRU"      for text people read
-round_amount("33.333")                 # Decimal("33.33") rounding is always on purpose
+from genmo_fb_common.events import enqueue_event
 
-utc_now()            # now in UTC, time zone attached (no datetime.utcnow())
-bank_today()         # today's date at the bank, which is not always UTC's date
-bank_week_start()    # when this week began at the bank, in UTC (also bank_day_start,
-bank_month_start()   # bank_month_start): limit periods, payout days, streaks
+with transaction.atomic():
+    chore.approve()
+    enqueue_event("chore.instance.approved", {...}, "chores-service")
 ```
 
-Amounts are `Decimal`, `int` or `str`, never `float`. `to_amount` refuses more decimals than
-the currency has instead of rounding them away. `resolve_language("fr-FR")` gives the offered
-language or the bank's default, and `is_rtl("ar")` is true.
+Run the worker beside the web process: `python manage.py publish_outbox` (a loop, `--once`
+for one round). It keeps trying while the bus is down and sends each event with the
+broker's confirmation. Delivery is at-least-once: an event can arrive twice, so consumers
+must handle repeats.
+
+**Consume once.** Record the `event_id`s a consumer has handled and ignore repeats:
+
+```python
+from genmo_fb_common.consumers import handle_once, parse_event
+
+def on_message(body):
+    event = parse_event(body)                      # checks the schema, reads old or new envelope
+    handle_once("gamification.chore-rewards", event, pay_the_reward)
+```
+
+**Contract tests.** Publishers validate what they send (`publish_event` and `enqueue_event`
+do it; `genmo_fb_common.schemas.validate(event)` does it in a test). Consumers test
+themselves against `genmo_fb_common.schemas.example_event("chore.instance.approved")`, and
+name the fields they read with `schemas.check_consumer_reads(event_type, fields, always=...)`,
+which fails when a field is not in the schema (a renamed or invented one) or may be missing or
+null where the consumer indexes it. `publish_event` still sends straight away and returns
+`False` if the bus is down: use it only for notices that may be lost.
+
+Tests: `pytest` runs on SQLite. Set `GFC_TEST_DATABASE_URL=postgres://user:pass@host:5432/db` to
+run on PostgreSQL, and `GFC_TEST_RABBITMQ_URL=amqp://user:pass@host:5672/` to also run the
+real-broker outbox test (bus down, then up: delivered once).
+
+`timestamp` is the old name of `occurred_at`. It is still sent for one release and
+`parse_event` accepts either, so a publisher and its consumers can be upgraded separately.
 
 ### Ownership (FC-06)
 A parent reaches only their own family's children, a child only themselves. The caller comes

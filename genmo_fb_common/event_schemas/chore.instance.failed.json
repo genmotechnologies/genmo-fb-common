@@ -1,0 +1,61 @@
+{
+  "event_type": "chore.instance.failed",
+  "version": 1,
+  "source_service": "chores-service",
+  "description": "A chore failed.",
+  "data": {
+    "type": "object",
+    "required": [
+      "instance_id",
+      "chore_id",
+      "chore_title",
+      "family_id",
+      "assigned_to_bank_customer_id",
+      "failed_by_bank_customer_id",
+      "rejection_reason"
+    ],
+    "properties": {
+      "instance_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "chore_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "chore_title": {
+        "type": "string"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "assigned_to_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "failed_by_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "rejection_reason": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "instance_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "chore_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "chore_title": "example",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "assigned_to_bank_customer_id": "CUST-P1",
+      "failed_by_bank_customer_id": "CUST-P1",
+      "rejection_reason": "example"
+    }
+  ]
+}
