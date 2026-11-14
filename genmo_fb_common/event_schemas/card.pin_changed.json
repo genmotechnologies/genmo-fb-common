@@ -1,0 +1,56 @@
+{
+  "event_type": "card.pin_changed",
+  "version": 1,
+  "source_service": "card-service",
+  "description": "The card's PIN was set or changed at the bank. The PIN itself is never in the event.",
+  "data": {
+    "type": "object",
+    "required": [
+      "card_id",
+      "bank_card_id",
+      "family_id",
+      "child_member_id",
+      "child_bank_customer_id",
+      "changed_by_bank_customer_id"
+    ],
+    "properties": {
+      "card_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_card_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_member_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "changed_by_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "card_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "bank_card_id": "BANK-CARD-1",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_member_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-C1",
+      "changed_by_bank_customer_id": "CUST-P1"
+    }
+  ]
+}

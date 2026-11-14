@@ -4,7 +4,7 @@ GenMo Family Banking - Common Library
 Shared utilities, base classes, and helpers for all GenMo services.
 """
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 # Exports are loaded on first use, not at import: "genmo_fb_common.outbox" is a Django app,
 # so Django imports this package while it is still loading apps, and importing a model
