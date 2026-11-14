@@ -70,11 +70,28 @@ def test_the_field_names_one_event_uses_are_the_ones_its_consumers_read():
     assert "sender_bank_customer_id" not in data
 
 
-def test_the_old_declined_name_is_marked_for_removal_and_matches_rejected():
-    declined = schemas.get_schema("chore.instance.declined")
-    rejected = schemas.get_schema("chore.instance.rejected")
-    assert "deprecated" in declined and "deprecated" not in rejected
-    assert declined["data"] == rejected["data"]
+def test_only_rejected_exists_for_a_chore_sent_back():
+    """No consumer reads chore.instance.declined, so it is gone."""
+    assert "chore.instance.rejected" in TYPES
+    assert "chore.instance.declined" not in TYPES
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        "goal.request.created",
+        "goal.request.approved",
+        "goal.request.rejected",
+        "goal.withdrawn",
+    ],
+)
+def test_goal_request_events_name_the_child_owner_bank_customer_id(event_type):
+    """The goal's child is its owner, as on every other goal event."""
+    data = schemas.get_schema(event_type)["data"]
+    assert "owner_bank_customer_id" in data["required"]
+    old = data["properties"].get("child_bank_customer_id")
+    if old:  # still accepted for one more release, never required
+        assert old["deprecated"] and "child_bank_customer_id" not in data["required"]
 
 
 @pytest.mark.parametrize(
