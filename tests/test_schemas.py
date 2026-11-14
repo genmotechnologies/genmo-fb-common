@@ -21,6 +21,10 @@ def test_there_is_a_schema_for_every_event_the_services_publish():
         "money_request": ["created", "approved", "declined"],
         "family": ["created", "updated", "deleted"],
         "limits": ["rule.changed", "exceeded"],
+        "card": ["requested", "created", "blocked", "unblocked", "pin_changed"],
+        "card.controls": ["updated"],
+        "gamification": ["xp.earned", "badge.earned", "level.up"],
+        "gamification.streak": ["started", "continued", "broken"],
     }
     for family, names in published.items():
         for name in names:
@@ -219,3 +223,24 @@ class TestConsumerContract:
             schemas.check_consumer_reads(
                 "transfer.completed", ["source_wallet_id", "destination_wallet_id"]
             )
+
+
+CARD_TYPES = [t for t in TYPES if t.startswith("card.")]
+GAMIFICATION_TYPES = [t for t in TYPES if t.startswith("gamification.")]
+
+
+@pytest.mark.parametrize("event_type", CARD_TYPES)
+def test_card_events_name_the_child_and_never_carry_a_pin(event_type):
+    data = schemas.get_schema(event_type)["data"]
+    assert "child_bank_customer_id" in data["required"]
+    assert not [name for name in data["properties"] if "pin" in name.split("_")]
+
+
+@pytest.mark.parametrize("event_type", GAMIFICATION_TYPES)
+def test_gamification_events_say_whose_progress_it_is(event_type):
+    data = schemas.get_schema(event_type)["data"]
+    assert "bank_customer_id" in data["required"]
+    # a streak or badge without a family is sent with null, never the text "None"
+    with pytest.raises(schemas.EventSchemaError):
+        schemas.example_event(event_type, family_id="None")
+    schemas.example_event(event_type, family_id=None)

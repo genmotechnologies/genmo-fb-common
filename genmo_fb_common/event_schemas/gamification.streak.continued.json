@@ -1,0 +1,57 @@
+{
+  "event_type": "gamification.streak.continued",
+  "version": 1,
+  "source_service": "gamification-service",
+  "description": "A child kept a streak going; `is_milestone` is true on day 7, 14 and 30.",
+  "data": {
+    "type": "object",
+    "required": [
+      "family_id",
+      "bank_customer_id",
+      "member_id",
+      "streak_type",
+      "current_streak",
+      "is_milestone"
+    ],
+    "properties": {
+      "family_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "member_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "streak_type": {
+        "type": "string"
+      },
+      "current_streak": {
+        "type": "integer"
+      },
+      "is_milestone": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "bank_customer_id": "CUST-C1",
+      "member_id": null,
+      "streak_type": "saving",
+      "current_streak": 7,
+      "is_milestone": true
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "event_type": "card.created",
+  "version": 1,
+  "source_service": "card-service",
+  "description": "A card request was approved and the bank issued the card.",
+  "data": {
+    "type": "object",
+    "required": [
+      "card_id",
+      "bank_card_id",
+      "family_id",
+      "child_member_id",
+      "child_bank_customer_id",
+      "card_request_id",
+      "card_type",
+      "status"
+    ],
+    "properties": {
+      "card_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_card_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_member_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "card_request_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "card_type": {
+        "type": "string",
+        "enum": [
+          "virtual",
+          "physical"
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "active",
+          "blocked",
+          "cancelled"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "card_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "bank_card_id": "BANK-CARD-1",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_member_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-C1",
+      "card_request_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "card_type": "virtual",
+      "status": "active"
+    }
+  ]
+}

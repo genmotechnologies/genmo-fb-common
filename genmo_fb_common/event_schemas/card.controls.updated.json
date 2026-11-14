@@ -1,0 +1,102 @@
+{
+  "event_type": "card.controls.updated",
+  "version": 1,
+  "source_service": "card-service",
+  "description": "A parent changed where and how much the card can be used.",
+  "data": {
+    "type": "object",
+    "required": [
+      "card_id",
+      "bank_card_id",
+      "family_id",
+      "child_bank_customer_id",
+      "updated_by_bank_customer_id",
+      "controls"
+    ],
+    "properties": {
+      "card_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_card_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "updated_by_bank_customer_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1
+      },
+      "controls": {
+        "type": "object",
+        "required": [
+          "online_transactions_enabled",
+          "atm_withdrawals_enabled",
+          "contactless_enabled",
+          "international_enabled",
+          "daily_spending_limit",
+          "per_transaction_limit"
+        ],
+        "properties": {
+          "online_transactions_enabled": {
+            "type": "boolean"
+          },
+          "atm_withdrawals_enabled": {
+            "type": "boolean"
+          },
+          "contactless_enabled": {
+            "type": "boolean"
+          },
+          "international_enabled": {
+            "type": "boolean"
+          },
+          "daily_spending_limit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "per_transaction_limit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "card_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "bank_card_id": "BANK-CARD-1",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-C1",
+      "updated_by_bank_customer_id": "CUST-P1",
+      "controls": {
+        "online_transactions_enabled": true,
+        "atm_withdrawals_enabled": false,
+        "contactless_enabled": true,
+        "international_enabled": false,
+        "daily_spending_limit": "200.00",
+        "per_transaction_limit": null
+      }
+    }
+  ]
+}

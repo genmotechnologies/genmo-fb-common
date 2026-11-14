@@ -1,0 +1,67 @@
+{
+  "event_type": "card.requested",
+  "version": 1,
+  "source_service": "card-service",
+  "description": "A parent asked for a card for their child; it waits for approval.",
+  "data": {
+    "type": "object",
+    "required": [
+      "card_request_id",
+      "family_id",
+      "child_member_id",
+      "child_bank_customer_id",
+      "parent_bank_customer_id",
+      "card_type",
+      "status"
+    ],
+    "properties": {
+      "card_request_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_member_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "parent_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "card_type": {
+        "type": "string",
+        "enum": [
+          "virtual",
+          "physical"
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "card_request_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_member_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "child_bank_customer_id": "CUST-C1",
+      "parent_bank_customer_id": "CUST-P1",
+      "card_type": "virtual",
+      "status": "pending"
+    }
+  ]
+}
