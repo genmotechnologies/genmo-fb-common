@@ -11,6 +11,7 @@
       "goal_name",
       "family_id",
       "requested_by_bank_customer_id",
+      "owner_bank_customer_id",
       "child_name",
       "request_type",
       "amount",
@@ -36,6 +37,10 @@
         "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
       },
       "requested_by_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "owner_bank_customer_id": {
         "type": "string",
         "minLength": 1
       },
@@ -82,6 +87,7 @@
       "goal_name": "example",
       "family_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
       "requested_by_bank_customer_id": "CUST-P1",
+      "owner_bank_customer_id": "CUST-P1",
       "child_name": "example",
       "request_type": "example",
       "amount": "50.00",
