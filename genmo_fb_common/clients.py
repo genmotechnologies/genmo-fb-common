@@ -15,6 +15,26 @@ from genmo_fb_common.middleware import get_current_request_id
 logger = structlog.get_logger(__name__)
 
 
+def _error_code(response: "httpx.Response") -> Optional[str]:
+    """
+    The machine-readable code of another service's error answer, for the log: the
+    platform's `{"error": {"code": ...}}` body, or a flat `{"code": ...}`. Never the
+    message and never the rest of the body. None when the answer has no such code.
+    """
+    try:
+        body = response.json()
+    except ValueError:
+        return None
+    if not isinstance(body, dict):
+        return None
+    error = body.get("error")
+    code = error.get("code") if isinstance(error, dict) else body.get("code")
+    # a code is a short token; anything else is not one and is not logged
+    if isinstance(code, str) and len(code) <= 64 and code.replace("_", "").isalnum():
+        return code
+    return None
+
+
 class ServiceClient:
     """
     Base HTTP client for calling other GenMo services.
@@ -126,7 +146,9 @@ class ServiceClient:
                         method=method,
                         url=url,
                         status=e.response.status_code,
-                        response=e.response.text,
+                        # the error code only: the body can carry what the caller
+                        # sent (a card number, a phone number), and logs never do
+                        error_code=_error_code(e.response),
                     )
                     raise
                 last_exception = e
