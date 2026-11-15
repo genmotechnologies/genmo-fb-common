@@ -138,9 +138,11 @@ def configure_logging(service: str, level: str = "INFO", json: bool = True) -> N
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         redact_sensitive,  # last before the renderer: nothing added after it escapes
-        structlog.processors.JSONRenderer()
-        if json
-        else structlog.dev.ConsoleRenderer(colors=False),
+        (
+            structlog.processors.JSONRenderer()
+            if json
+            else structlog.dev.ConsoleRenderer(colors=False)
+        ),
     ]
     structlog.configure(
         processors=processors,

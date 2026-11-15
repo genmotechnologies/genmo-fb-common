@@ -28,7 +28,12 @@ from .logs import (
 )
 
 # `"pin": "1234"`, `pin=1234`, `otp: 123456`: a sensitive key followed by a value
-_KEY_VALUE = re.compile(r"""["']?([A-Za-z][\w-]{1,40})["']?\s*[:=]\s*["']?([^\s,"'}\]]+)""")
+_KEY_VALUE = re.compile(
+    r"""["']?([A-Za-z][\w-]{1,40})["']?\s*[:=]\s*["']?(\[REDACTED\]|[^\s,"'}\]]+)"""
+)
+
+
+_BEARER_MASKED = re.compile(r"(?i)(?:bearer|basic)\s+\[REDACTED\]")
 
 
 @dataclass(frozen=True)
@@ -53,7 +58,9 @@ def scan_line(text: str) -> Iterator[str]:
             yield "card number"
     if _PHONE.search(text):
         yield "phone number"
-    for key, value in _KEY_VALUE.findall(text):
+    # `Authorization: Bearer [REDACTED]` is masked: the scheme word is not the secret
+    masked_auth = _BEARER_MASKED.sub(MASK, text)
+    for key, value in _KEY_VALUE.findall(masked_auth):
         if is_sensitive_key(key) and value not in (MASK, "null", "None", "none"):
             yield f"unmasked value under '{key}'"
 
@@ -85,9 +92,7 @@ def _json_fields(text: str) -> list[str]:
             for item in value:
                 walk(item)
         elif (
-            key is not None
-            and is_sensitive_key(key)
-            and value not in (MASK, None, "")
+            key is not None and is_sensitive_key(key) and value not in (MASK, None, "")
         ):
             kinds.append(f"unmasked value under '{key}'")
 
@@ -103,9 +108,7 @@ def main(argv=None) -> int:
             findings += scan(sys.stdin)
         else:
             with open(path, encoding="utf-8", errors="replace") as handle:
-                findings += [
-                    Finding(f.line, f"{path}: {f.kind}") for f in scan(handle)
-                ]
+                findings += [Finding(f.line, f"{path}: {f.kind}") for f in scan(handle)]
     for finding in findings:
         print(finding)
     print(f"{len(findings)} sensitive value(s) found in the logs")
