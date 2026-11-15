@@ -228,3 +228,28 @@ cd /tmp/test-install
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate
+## Logging and redaction (FC-08)
+
+No log line may carry a card number, a PIN, an OTP, a token or a phone number.
+`genmo_fb_common.logs` masks them in everything a service logs:
+
+```python
+from genmo_fb_common.logs import configure_logging
+
+configure_logging("account-service")  # once, at start-up; JSON, with the request ID
+```
+
+Or add `genmo_fb_common.logs.redact_sensitive` to the service's own structlog processors,
+before the renderer. It masks by key (`pin`, `otp`, `card_number`, `phone`, `authorization`,
+`token`, `password`, `secret`, `cvv`) and by content (a Luhn-valid card number, a JWT, a
+`Bearer` credential, an international phone number) inside any string, error text included.
+
+`python -m genmo_fb_common.logscan` is the matching CI check. It reads logs from files or
+standard input, prints the line and kind of each leak (never the value) and exits 1 if
+there is any:
+
+```bash
+docker compose logs --no-color | python -m genmo_fb_common.logscan
+```
+
+Metrics and tracing are not part of this module yet.
