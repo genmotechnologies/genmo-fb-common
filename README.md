@@ -228,3 +228,25 @@ cd /tmp/test-install
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate
+## Tracing and metrics (FC-08)
+
+Tracing follows the W3C `traceparent` header. Add the middleware after
+`RequestIDMiddleware`; the trace and span IDs go to the logs, `X-Trace-Id` goes on the
+response, and `ServiceClient` forwards the trace to the next service with a new span ID:
+
+```python
+MIDDLEWARE = [
+    ...,
+    "genmo_fb_common.middleware.RequestIDMiddleware",
+    "genmo_fb_common.tracing.TraceContextMiddleware",
+    "genmo_fb_common.metrics.MetricsMiddleware",
+]
+
+from genmo_fb_common.metrics import metrics_view
+urlpatterns = [..., path("metrics/", metrics_view)]
+```
+
+Metrics are `http_requests_total` and `http_request_duration_seconds`, in the Prometheus
+text format, labelled by method, URL pattern (never the raw path) and status. Set
+`METRICS_TOKEN` to make the endpoint need `Authorization: Bearer <token>`. No tracing
+backend or metrics library is needed; the numbers are per process.
