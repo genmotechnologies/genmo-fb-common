@@ -165,6 +165,19 @@ def test_what_the_services_really_send_is_allowed():
     schemas.example_event("goal.created", deadline=None)
 
 
+def test_a_family_wide_limit_rule_has_no_customer_it_applies_to():
+    """A parent can set a limit for the whole family. The rule then applies to nobody in
+    particular, so limits-service sends no customer (and no member) for it."""
+    schemas.example_event(
+        "limits.rule.changed",
+        applies_to_bank_customer_id=None,
+        applies_to_member_id=None,
+    )
+    # a customer, when there is one, is still a real value and never an empty string
+    with pytest.raises(schemas.EventSchemaError):
+        schemas.example_event("limits.rule.changed", applies_to_bank_customer_id="")
+
+
 class TestConsumerContract:
     def test_fields_the_schema_declares_pass(self):
         schemas.check_consumer_reads(
