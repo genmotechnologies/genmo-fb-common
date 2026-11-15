@@ -31,6 +31,69 @@ jobs:
         uses: codecov/codecov-action@v3
         if: always()
 
+  # The same suite on the real services instead of SQLite and fakes: PostgreSQL has the row
+  # locks the outbox worker relies on, and the broker and cache are real.
+  test-real-services:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: gfc
+          POSTGRES_PASSWORD: gfc
+          POSTGRES_DB: gfc
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gfc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      rabbitmq:
+        image: rabbitmq:3
+        env:
+          RABBITMQ_DEFAULT_USER: gfc
+          RABBITMQ_DEFAULT_PASS: gfc
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 10
+
+    env:
+      GFC_TEST_DATABASE_URL: postgres://gfc:gfc@localhost:5432/gfc
+      GFC_TEST_REDIS_URL: redis://localhost:6379/0
+      GFC_TEST_RABBITMQ_URL: amqp://gfc:gfc@localhost:5672/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" psycopg2-binary redis
+
+      - name: Run tests on the real services
+        run: |
+          pytest -v -rs
+
   lint:
     runs-on: ubuntu-latest
     
