@@ -228,28 +228,25 @@ cd /tmp/test-install
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate
-## Logging and redaction (FC-08)
+## Tracing and metrics (FC-08)
 
-No log line may carry a card number, a PIN, an OTP, a token or a phone number.
-`genmo_fb_common.logs` masks them in everything a service logs:
+Tracing follows the W3C `traceparent` header. Add the middleware after
+`RequestIDMiddleware`; the trace and span IDs go to the logs, `X-Trace-Id` goes on the
+response, and `ServiceClient` forwards the trace to the next service with a new span ID:
 
 ```python
-from genmo_fb_common.logs import configure_logging
+MIDDLEWARE = [
+    ...,
+    "genmo_fb_common.middleware.RequestIDMiddleware",
+    "genmo_fb_common.tracing.TraceContextMiddleware",
+    "genmo_fb_common.metrics.MetricsMiddleware",
+]
 
-configure_logging("account-service")  # once, at start-up; JSON, with the request ID
+from genmo_fb_common.metrics import metrics_view
+urlpatterns = [..., path("metrics/", metrics_view)]
 ```
 
-Or add `genmo_fb_common.logs.redact_sensitive` to the service's own structlog processors,
-before the renderer. It masks by key (`pin`, `otp`, `card_number`, `phone`, `authorization`,
-`token`, `password`, `secret`, `cvv`) and by content (a Luhn-valid card number, a JWT, a
-`Bearer` credential, an international phone number) inside any string, error text included.
-
-`python -m genmo_fb_common.logscan` is the matching CI check. It reads logs from files or
-standard input, prints the line and kind of each leak (never the value) and exits 1 if
-there is any:
-
-```bash
-docker compose logs --no-color | python -m genmo_fb_common.logscan
-```
-
-Metrics and tracing are not part of this module yet.
+Metrics are `http_requests_total` and `http_request_duration_seconds`, in the Prometheus
+text format, labelled by method, URL pattern (never the raw path) and status. Set
+`METRICS_TOKEN` to make the endpoint need `Authorization: Bearer <token>`. No tracing
+backend or metrics library is needed; the numbers are per process.

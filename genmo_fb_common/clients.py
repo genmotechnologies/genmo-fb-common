@@ -11,6 +11,7 @@ import structlog
 
 from genmo_fb_common.exceptions import ServiceUnavailableError
 from genmo_fb_common.middleware import get_current_request_id
+from genmo_fb_common.tracing import outgoing_traceparent
 
 logger = structlog.get_logger(__name__)
 
@@ -87,6 +88,11 @@ class ServiceClient:
         request_id = get_current_request_id()
         if request_id:
             headers["X-Request-ID"] = request_id
+
+        # Forward the trace (FC-08): the same trace ID, a new span for this call
+        traceparent = outgoing_traceparent()
+        if traceparent:
+            headers["traceparent"] = traceparent
 
         return headers
 
