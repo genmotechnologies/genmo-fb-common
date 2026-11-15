@@ -11,20 +11,23 @@ did, and it works two ways:
   `Bearer ...` credential or an international phone number (`+` and 8 to 15 digits) inside
   any string, a message or an error text included, is replaced.
 
-A service opts in once, at start-up:
+A Django service that logs with `logging.getLogger` opts in in its settings:
 
-    from genmo_fb_common.logs import configure_logging
-    configure_logging("account-service")
+    from genmo_fb_common.logs import logging_settings
+    LOGGING = logging_settings("account-service")
 
-or adds `redact_sensitive` to its own structlog processor list, before the renderer.
+which sends the standard library's records and structlog's through the same redaction and
+JSON renderer. A service that only uses structlog can call `configure_logging(service)` at
+start-up instead, or add `redact_sensitive` to its own processor list, before the renderer.
 `genmo_fb_common.logscan` is the matching check for CI: it fails on a log that still holds
 any of these.
 """
 
 import logging
+import os
 import re
 import sys
-from typing import Any
+from typing import Any, Optional
 
 import structlog
 
@@ -152,6 +155,78 @@ def configure_logging(service: str, level: str = "INFO", json: bool = True) -> N
         logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
         cache_logger_on_first_use=True,
     )
+
+
+def logging_settings(
+    service: str, level: str = "INFO", log_file: Optional[str] = None
+) -> dict:
+    """
+    Django's LOGGING for one service (PL10 / FC-08): every record, from `logging.getLogger`
+    and from structlog alike, leaves as one JSON line with the time (ISO, UTC), level,
+    logger, service, the request and trace IDs bound for this request, and `extra` fields,
+    all redacted. Records go to stdout, and also to `log_file` (default: the LOG_FILE
+    environment variable) when one is given, which is how CI collects a test run's logs
+    for `genmo_fb_common.logscan`.
+
+    It also points structlog at the standard library, so both end in the same handlers.
+    Celery replaces the root logger's handlers in its workers unless
+    `CELERY_WORKER_HIJACK_ROOT_LOGGER = False`.
+    """
+    log_file = log_file if log_file is not None else os.environ.get("LOG_FILE") or None
+    level = level.upper()
+    shared = [
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso", utc=True),
+        _bind_service(service),
+    ]
+    structlog.configure(
+        processors=shared
+        + [
+            structlog.processors.StackInfoRenderer(),
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+    handlers = {
+        "console": {
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "json",
+        }
+    }
+    if log_file:
+        handlers["file"] = {
+            "class": "logging.FileHandler",
+            "filename": log_file,
+            "delay": True,
+            "encoding": "utf-8",
+            "formatter": "json",
+        }
+    # Django's own loggers hand their records to the root, so they are redacted too.
+    to_root = {"handlers": [], "level": level, "propagate": True}
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "json": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "foreign_pre_chain": shared + [structlog.stdlib.ExtraAdder()],
+                "processors": [
+                    structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                    structlog.processors.format_exc_info,
+                    redact_sensitive,  # last before the renderer: nothing escapes it
+                    structlog.processors.JSONRenderer(),
+                ],
+            }
+        },
+        "handlers": handlers,
+        "root": {"handlers": list(handlers), "level": level},
+        "loggers": {"django": to_root, "django.server": to_root},
+    }
 
 
 def _bind_service(service: str):
