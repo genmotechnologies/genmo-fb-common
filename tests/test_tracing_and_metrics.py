@@ -182,7 +182,10 @@ class TestMetrics:
         metrics.HTTP_DURATION.observe(0.3, "GET", "r")
 
         text = metrics.render()
-        assert 'http_request_duration_seconds_bucket{method="GET",route="r",le="0.01"} 0' in text
+        assert (
+            'http_request_duration_seconds_bucket{method="GET",route="r",le="0.01"} 0'
+            in text
+        )
         assert 'le="0.025"} 1' in text
         assert 'le="0.5"} 2' in text
         assert 'le="+Inf"} 2' in text
@@ -209,7 +212,9 @@ class TestMetrics:
 
     @override_settings(METRICS_TOKEN="s3cret")
     def test_with_a_token_set_the_endpoint_needs_it(self):
-        assert metrics.metrics_view(RequestFactory().get("/metrics/")).status_code == 401
+        assert (
+            metrics.metrics_view(RequestFactory().get("/metrics/")).status_code == 401
+        )
         wrong = RequestFactory().get("/metrics/", HTTP_AUTHORIZATION="Bearer nope")
         assert metrics.metrics_view(wrong).status_code == 401
         right = RequestFactory().get("/metrics/", HTTP_AUTHORIZATION="Bearer s3cret")
