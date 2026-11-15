@@ -36,6 +36,17 @@ if os.environ.get("GFC_TEST_DATABASE_URL"):
         "PORT": _url.port or 5432,
     }
 
+# GFC_TEST_REDIS_URL=redis://host:6379/0 uses a running Redis as the cache, as CI does.
+# Without it the tests use the in-memory cache. (The RabbitMQ test has its own variable,
+# GFC_TEST_RABBITMQ_URL, see tests/test_outbox_rabbitmq.py.)
+if os.environ.get("GFC_TEST_REDIS_URL"):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": os.environ["GFC_TEST_REDIS_URL"],
+        }
+    }
+
 # Event schemas are checked strictly in the library's own tests.
 GENMO_EVENT_SCHEMA_ENFORCEMENT = "error"
 
