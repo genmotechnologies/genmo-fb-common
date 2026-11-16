@@ -23,7 +23,14 @@ Usage, in MIDDLEWARE, in place of IdentitySessionMiddleware:
     "genmo_fb_common.jwt_auth.JwtAuthMiddleware",
 
 It sets the same attributes IdentitySessionMiddleware sets (`bank_customer_id`, `bank_id`,
-`session_id`), so views, permission classes and ownership checks work unchanged.
+`session_id`), so views, permission classes and ownership checks work unchanged, and
+`request.family`: the caller's role and family (`request.family.role` is "parent", "child"
+or None; `request.family.family_id`, the members and the FA-06 permissions). It comes from
+family-service (FC-06, `genmo_fb_common.ownership`) only when something reads it, once per
+request and cached for 60 seconds, so a request that does not need it costs no call.
+
+`/metrics/` is passed through untouched: its Bearer header is the scraper's METRICS_TOKEN,
+not a GenMo token.
 
 Answers:
     no Authorization header   the request goes on with no caller (views answer 401 themselves)
@@ -44,6 +51,9 @@ import jwt
 import structlog
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.functional import SimpleLazyObject
+
+from .ownership import get_family_context
 
 logger = structlog.get_logger(__name__)
 
@@ -54,6 +64,8 @@ REQUEST_TIMEOUT = 5.0
 # sending made-up key ids must not turn every request into a call to identity-service
 MIN_REFETCH_SECONDS = 30
 NO_KEYS_RETRY_SECONDS = 5
+# a Bearer header here is not a GenMo token (the metrics scraper's METRICS_TOKEN)
+NOT_A_SESSION_PATHS = frozenset({"/metrics/"})
 
 
 class InvalidTokenError(Exception):
@@ -190,8 +202,10 @@ class JwtAuthMiddleware:
         request.bank_id            the token's `bank_id`
         request.session_id         the token's `sid`
         request.token_claims       every claim
+        request.family             the caller's role and family, from family-service
+                                   only when read (FC-06); empty without a caller
 
-    All four are None when the request carries no Bearer token. A Bearer token that is not
+    The first four are None when the request carries no Bearer token. A Bearer token that is not
     genuine is answered here with 401, so no view sees it.
     """
 
@@ -203,7 +217,10 @@ class JwtAuthMiddleware:
         request.bank_id = None
         request.session_id = None
         request.token_claims = None
+        request.family = SimpleLazyObject(lambda: get_family_context(request))
 
+        if request.path in NOT_A_SESSION_PATHS:
+            return self.get_response(request)
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return self.get_response(request)
