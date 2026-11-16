@@ -78,10 +78,11 @@ def test_the_field_names_one_event_uses_are_the_ones_its_consumers_read():
     assert "sender_bank_customer_id" not in data
 
 
-def test_only_rejected_exists_for_a_chore_sent_back():
-    """No consumer reads chore.instance.declined, so it is gone."""
-    assert "chore.instance.rejected" in TYPES
-    assert "chore.instance.declined" not in TYPES
+def test_a_chore_sent_back_has_the_backlogs_declined_and_the_old_rejected():
+    """CH-08 (COM-031): chore.instance.declined is the backlog's name; rejected stays."""
+    declined = schemas.get_schema("chore.instance.declined")["data"]
+    rejected = schemas.get_schema("chore.instance.rejected")["data"]
+    assert declined == rejected
 
 
 @pytest.mark.parametrize(
