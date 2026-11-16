@@ -230,3 +230,30 @@ class TestLogScan:
 
         assert logscan.main([str(log)]) == 0
         assert "0 sensitive" in capsys.readouterr().out
+
+
+class TestKeyValueInText:
+    """COM-028: a sensitive key's value inside a text is masked, as the scan expects."""
+
+    @pytest.mark.parametrize(
+        "text, expected",
+        [
+            ("login pin=1234 ok", f"login pin={logs.MASK} ok"),
+            ('{"otp": "123456"}', f'{{"otp": "{logs.MASK}"}}'),
+            ("{'password': 'hunter2'}", f"{{'password': '{logs.MASK}'}}"),
+            ("rule, auth_token=token, child", f"rule, auth_token={logs.MASK}, child"),
+            ("status=200 card_id=C-1", "status=200 card_id=C-1"),
+            ("pin=None", "pin=None"),
+            (
+                "Authorization: Bearer abcdefghijkl",
+                f"Authorization: Bearer {logs.MASK}",
+            ),
+        ],
+    )
+    def test_masked(self, text, expected):
+        assert logs.scrub(text) == expected
+
+    def test_a_traceback_with_a_sensitive_argument_passes_the_scan(self):
+        line = 'File "views.py", line 9\\n    publish(rule, auth_token=token)'
+        assert list(logscan.scan([logs.scrub(line)])) == []
+        assert list(logscan.scan([line])) != []

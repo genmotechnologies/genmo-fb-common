@@ -228,6 +228,29 @@ cd /tmp/test-install
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate
+## Logging and redaction (FC-08)
+
+A service's logs leave as JSON lines with no card number, PIN, OTP, token or phone number
+in them. In the Django settings:
+
+```python
+from genmo_fb_common.logs import logging_settings
+
+LOGGING = logging_settings("account-service")
+```
+
+Everything the service logs, with `logging.getLogger` or structlog, gets the time, level,
+logger, service, request ID and trace ID, and is redacted before it is written. Records go
+to stdout, and also to the file named by `LOG_FILE` when it is set. CI sets it for the test
+run and then checks the file:
+
+```bash
+LOG_FILE=test.log pytest
+python -m genmo_fb_common.logscan test.log   # exits 1 on anything left unredacted
+```
+
+A Celery worker keeps these handlers only with `CELERY_WORKER_HIJACK_ROOT_LOGGER = False`.
+
 ## Tracing and metrics (FC-08)
 
 Tracing follows the W3C `traceparent` header. Add the middleware after
