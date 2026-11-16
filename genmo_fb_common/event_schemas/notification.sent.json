@@ -1,0 +1,29 @@
+{
+  "event_type": "notification.sent",
+  "version": 1,
+  "source_service": "notification-service",
+  "description": "A notification went out on a channel (in-app or push).",
+  "data": {
+    "type": "object",
+    "required": [
+      "user_id",
+      "channel"
+    ],
+    "properties": {
+      "user_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channel": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "user_id": "CUST-C1",
+      "channel": "push"
+    }
+  ]
+}

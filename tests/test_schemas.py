@@ -20,6 +20,8 @@ def test_there_is_a_schema_for_every_event_the_services_publish():
         "transfer": ["initiated", "completed", "failed"],
         # TR-07: a child's transfer the approval rule holds (COM-025)
         "transfer.approval": ["requested", "approved", "declined"],
+        # FC-01: notification-service's own events (COM-027)
+        "notification": ["created", "sent", "read", "failed"],
         "money_request": ["created", "approved", "declined"],
         "family": ["created", "updated", "deleted"],
         "limits": ["rule.changed", "exceeded"],

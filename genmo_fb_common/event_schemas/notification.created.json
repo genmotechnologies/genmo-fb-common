@@ -1,0 +1,34 @@
+{
+  "event_type": "notification.created",
+  "version": 1,
+  "source_service": "notification-service",
+  "description": "An in-app notification was created for a user.",
+  "data": {
+    "type": "object",
+    "required": [
+      "user_id",
+      "type",
+      "title"
+    ],
+    "properties": {
+      "user_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "type": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "user_id": "CUST-C1",
+      "type": "chore",
+      "title": "example"
+    }
+  ]
+}

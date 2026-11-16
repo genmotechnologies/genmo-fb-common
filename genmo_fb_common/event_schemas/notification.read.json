@@ -1,0 +1,30 @@
+{
+  "event_type": "notification.read",
+  "version": 1,
+  "source_service": "notification-service",
+  "description": "A user read an in-app notification.",
+  "data": {
+    "type": "object",
+    "required": [
+      "notification_id",
+      "user_id"
+    ],
+    "properties": {
+      "notification_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "user_id": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "notification_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "user_id": "CUST-C1"
+    }
+  ]
+}
