@@ -72,6 +72,20 @@ _CARD = re.compile(r"(?<![\w.-])(?:\d[ -]?){12,18}\d(?![\w-])")
 _PHONE = re.compile(r"(?<![\w+])\+\d[\d\s().-]{6,17}\d(?!\d)")
 
 
+# `pin=1234`, `"otp": "123456"`, `password: x` inside a text (a message, an error, a
+# traceback's source line): the same rule `logscan` checks.
+_KEY_VALUE = re.compile(
+    r"""(["']?([A-Za-z][\w-]{1,40})["']?\s*[:=]\s*["']?)(\[REDACTED\]|[^\s,"'}\]]+)"""
+)
+_NOT_A_VALUE = {MASK, "null", "None", "none", "bearer", "Bearer", "basic", "Basic"}
+
+
+def _mask_key_value(match: "re.Match") -> str:
+    if is_sensitive_key(match.group(2)) and match.group(3) not in _NOT_A_VALUE:
+        return match.group(1) + MASK
+    return match.group(0)
+
+
 def is_sensitive_key(key: Any) -> bool:
     words = [word.lower() for word in _WORDS.findall(str(key))]
     if any(word in SENSITIVE_WORDS for word in words):
@@ -99,11 +113,15 @@ def _mask_card(match: "re.Match") -> str:
 
 
 def scrub(text: str) -> str:
-    """The text with every card number, JWT, bearer credential and phone number masked."""
+    """
+    The text with every card number, JWT, bearer credential and phone number masked, and
+    the value after a sensitive key (`pin=1234`, `"otp": "123456"`).
+    """
     text = _JWT.sub(MASK, text)
     text = _BEARER.sub(lambda m: f"{m.group(1)} {MASK}", text)
     text = _CARD.sub(_mask_card, text)
-    return _PHONE.sub(MASK, text)
+    text = _PHONE.sub(MASK, text)
+    return _KEY_VALUE.sub(_mask_key_value, text)
 
 
 def redact(value: Any, key: Any = None) -> Any:
