@@ -30,7 +30,8 @@ family-service (FC-06, `genmo_fb_common.ownership`) only when something reads it
 request and cached for 60 seconds, so a request that does not need it costs no call.
 
 `/metrics/` is passed through untouched: its Bearer header is the scraper's METRICS_TOKEN,
-not a GenMo token.
+not a GenMo token. So is `/api/v1/internal/...`: those endpoints take service tokens, which
+`genmo_fb_common.service_auth` checks (PL6).
 
 Answers:
     no Authorization header   the request goes on with no caller (views answer 401 themselves)
@@ -66,6 +67,8 @@ MIN_REFETCH_SECONDS = 30
 NO_KEYS_RETRY_SECONDS = 5
 # a Bearer header here is not a GenMo token (the metrics scraper's METRICS_TOKEN)
 NOT_A_SESSION_PATHS = frozenset({"/metrics/"})
+# internal endpoints take service tokens, checked by service_auth (PL6 / FC-07)
+INTERNAL_PREFIX = "/api/v1/internal/"
 
 
 class InvalidTokenError(Exception):
@@ -219,7 +222,9 @@ class JwtAuthMiddleware:
         request.token_claims = None
         request.family = SimpleLazyObject(lambda: get_family_context(request))
 
-        if request.path in NOT_A_SESSION_PATHS:
+        if request.path in NOT_A_SESSION_PATHS or request.path.startswith(
+            INTERNAL_PREFIX
+        ):
             return self.get_response(request)
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):

@@ -251,6 +251,33 @@ python -m genmo_fb_common.logscan test.log   # exits 1 on anything left unredact
 
 A Celery worker keeps these handlers only with `CELERY_WORKER_HIJACK_ROOT_LOGGER = False`.
 
+## Service tokens (PL6 / FC-07)
+
+A scheduled job or an event consumer has no parent or child signed in. It calls another
+service's internal endpoints (`/api/v1/internal/...`) with a service token from
+identity-service (client credentials, ID-04):
+
+```python
+from genmo_fb_common.service_auth import get_service_token
+
+client = TransferServiceClient(auth_token=get_service_token())  # fetched once, kept
+```
+
+Settings: `SERVICE_CLIENT_ID`, `SERVICE_CLIENT_SECRET`, `IDENTITY_SERVICE_URL`. The
+receiving view:
+
+```python
+from genmo_fb_common.service_auth import HasServiceScope, ServiceTokenAuthentication
+
+class InternalTransferView(APIView):
+    authentication_classes = [ServiceTokenAuthentication]
+    permission_classes = [HasServiceScope]
+    required_scope = "transfers:scheduled"
+```
+
+No token, or a user's token: 401. A service token without the scope: 403. A service token
+on a user endpoint: 401 (it can't act as a parent or child).
+
 ## Tracing and metrics (FC-08)
 
 Tracing follows the W3C `traceparent` header. Add the middleware after
