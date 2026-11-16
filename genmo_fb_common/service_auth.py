@@ -217,3 +217,23 @@ class HasServiceScope(permissions.BasePermission):
             and bool(required)
             and caller.has_scope(required)
         )
+
+
+try:  # the OpenAPI description of service tokens, for services that use drf-spectacular
+    from drf_spectacular.extensions import OpenApiAuthenticationExtension
+except ImportError:  # pragma: no cover
+    pass
+else:
+
+    class ServiceTokenScheme(OpenApiAuthenticationExtension):
+        target_class = "genmo_fb_common.service_auth.ServiceTokenAuthentication"
+        name = "ServiceToken"
+
+        def get_security_definition(self, auto_schema):
+            return {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "A service token from identity-service (client "
+                "credentials, PL6); never a parent's or child's token.",
+            }
