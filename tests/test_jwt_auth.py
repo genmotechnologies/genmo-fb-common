@@ -23,6 +23,7 @@ from genmo_fb_common.jwt_auth import (
     clear_key_cache,
     verify_access_token,
 )
+from genmo_fb_common.ownership import FamilyContext
 
 ISSUER = "genmo-identity"
 AUDIENCE = "genmo-services"
@@ -98,11 +99,11 @@ def identity(key):
     clear_key_cache()
 
 
-def call(token=None):
+def call(token=None, path="/"):
     """Run the middleware; returns (request, response, the view was reached)."""
     view = MagicMock(return_value=MagicMock(status_code=200))
     extra = {"HTTP_AUTHORIZATION": f"Bearer {token}"} if token is not None else {}
-    request = RequestFactory().get("/", **extra)
+    request = RequestFactory().get(path, **extra)
     response = JwtAuthMiddleware(view)(request)
     return request, response, view.called
 
@@ -332,3 +333,57 @@ class TestRetryWithNoKeys:
             _, response, reached = call(key.token())
 
         assert reached and response.status_code == 200
+
+
+class TestRoleAndFamily:
+    """COM-029 (FC-05): the caller's role and family on the request, from family-service."""
+
+    FAMILY = "genmo_fb_common.ownership.fetch_family_context"
+
+    def test_are_on_the_request_from_family_service(self, identity, key):
+        family = FamilyContext(family_id="FAM-1", role="parent", member_id="M-1")
+        token = key.token()
+        with patch(self.FAMILY, return_value=family) as fetch:
+            request, _, _ = call(token)
+
+            assert request.family.role == "parent"
+            assert request.family.family_id == "FAM-1"
+            assert request.family.is_parent
+
+        fetch.assert_called_once_with(token, "CUST-1")
+
+    def test_cost_no_call_when_nothing_reads_them(self, identity, key):
+        with patch(self.FAMILY) as fetch:
+            call(key.token())
+
+        fetch.assert_not_called()
+
+    def test_are_asked_once_per_request(self, identity, key):
+        with patch(self.FAMILY, return_value=FamilyContext(role="child")) as fetch:
+            request, _, _ = call(key.token())
+            assert request.family.role == "child"
+            assert request.family.is_child
+
+        assert fetch.call_count == 1
+
+    def test_are_empty_without_a_caller(self, identity):
+        with patch(self.FAMILY) as fetch:
+            request, _, _ = call()
+            assert request.family.role is None
+            assert request.family.family_id is None
+
+        fetch.assert_not_called()
+
+
+class TestMetricsPath:
+    def test_the_scrapers_token_is_not_refused_as_a_genmo_token(self, identity):
+        request, response, reached = call("scrape-secret", path="/metrics/")
+
+        assert reached and response.status_code == 200
+        assert request.bank_customer_id is None
+        assert identity.call_count == 0
+
+    def test_other_paths_still_refuse_it(self, identity):
+        _, response, reached = call("scrape-secret", path="/api/v1/x/")
+
+        assert not reached and response.status_code == 401
