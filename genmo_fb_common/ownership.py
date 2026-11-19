@@ -35,6 +35,8 @@ from django.core.cache import cache
 from rest_framework import status
 from rest_framework.exceptions import APIException, NotAuthenticated, PermissionDenied
 
+from .messages import MESSAGES, LocalisedDetail
+
 logger = structlog.get_logger(__name__)
 
 FAMILY_PERMISSIONS = ("view_children", "approve", "limits_and_cards", "send_money")
@@ -43,17 +45,20 @@ REQUEST_TIMEOUT = 5.0
 _REQUEST_ATTR = "_genmo_family_context"
 
 
-class NotYourChild(PermissionDenied):
-    default_detail = "This child is not in your family."
+class NotYourChild(LocalisedDetail, PermissionDenied):
+    message_key = "family.not_your_child"
+    default_detail = "This child is not in your family."  # English; raised: localised
     default_code = "NOT_YOUR_CHILD"
 
 
-class FamilyPermissionMissing(PermissionDenied):
+class FamilyPermissionMissing(LocalisedDetail, PermissionDenied):
+    message_key = "family.permission_missing"
     default_detail = "The family holder has not given you this permission."
     default_code = "FAMILY_PERMISSION_MISSING"
 
 
-class FamilyUnavailable(APIException):
+class FamilyUnavailable(LocalisedDetail, APIException):
+    message_key = "family.unavailable"
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_detail = "Family details are unavailable right now. Please try again."
     default_code = "FAMILY_UNAVAILABLE"
@@ -280,7 +285,7 @@ def ensure_parent_permission(request, name: str) -> FamilyContext:
         raise NotAuthenticated()
     context = get_family_context(request)
     if not context.is_parent:
-        raise PermissionDenied("Only parents can perform this action.")
+        raise PermissionDenied(MESSAGES.text("family.parents_only"))
     if not context.may(name):
         raise FamilyPermissionMissing()
     return context

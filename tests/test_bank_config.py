@@ -323,3 +323,25 @@ class TestNothingHardCoded:
 
         for value in ("PKR", "SAR", "Asia/Karachi"):
             assert f'"{value}"' not in source
+
+
+class TestAdapterAmount:
+    """The bank adapter takes exactly 2 places today (NF-09 open); never a changed amount."""
+
+    def test_two_places(self):
+        from genmo_fb_common.bank_config import adapter_amount
+
+        assert adapter_amount("10.5") == "10.50"
+
+    @override_settings(BANK_CURRENCY="TND")
+    def test_a_three_decimal_amount_that_fits(self):
+        from genmo_fb_common.bank_config import adapter_amount
+
+        assert adapter_amount("10.500") == "10.50"
+
+    @override_settings(BANK_CURRENCY="TND")
+    def test_acceptance_one_that_does_not_fit_is_refused_not_rounded(self):
+        from genmo_fb_common.bank_config import AdapterAmountError, adapter_amount
+
+        with pytest.raises(AdapterAmountError):
+            adapter_amount("10.555")

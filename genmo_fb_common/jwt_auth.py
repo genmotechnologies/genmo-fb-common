@@ -54,6 +54,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.utils.functional import SimpleLazyObject
 
+from .messages import MESSAGES
 from .ownership import get_family_context
 
 logger = structlog.get_logger(__name__)
@@ -234,12 +235,12 @@ class JwtAuthMiddleware:
             claims = verify_access_token(auth_header[7:].strip())
         except InvalidTokenError as exc:
             logger.info("token_refused", reason=str(exc))
-            return _refuse(401, "INVALID_TOKEN", "The access token is not valid.")
+            return _refuse(401, "INVALID_TOKEN", MESSAGES.text("token.invalid"))
         except KeysUnavailableError:
             return _refuse(
                 503,
                 "AUTH_UNAVAILABLE",
-                "Sign-in can't be checked right now. Please try again.",
+                MESSAGES.text("token.unavailable"),
             )
 
         request.bank_customer_id = claims["sub"]
