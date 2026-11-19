@@ -158,6 +158,31 @@ def amount_str(value: Amount, currency: Optional[str] = None) -> str:
     return format(to_amount(value, currency), "f")
 
 
+class AdapterAmountError(ValueError):
+    """The amount can't be sent to the bank adapter without changing it."""
+
+
+# The bank adapter's contract (bank-adapter.yaml, Money) takes exactly 2 places today;
+# whether the places follow each currency's own decimals is an open Phase 0 decision (NF-09).
+ADAPTER_AMOUNT_PLACES = 2
+
+
+def adapter_amount(value: Amount, currency: Optional[str] = None) -> str:
+    """
+    The amount as the bank adapter takes it: exactly 2 places ("10.50"). A 3-decimal
+    currency's amount goes when it fits exactly ("10.500" TND as "10.50"); one that
+    doesn't (10.555) raises AdapterAmountError, so a wrong amount is never sent.
+    """
+    amount = to_amount(value, currency)
+    unit = Decimal(1).scaleb(-ADAPTER_AMOUNT_PLACES)
+    fitted = amount.quantize(unit)
+    if fitted != amount:
+        raise AdapterAmountError(
+            f"{amount} can't be sent to the bank with {ADAPTER_AMOUNT_PLACES} places."
+        )
+    return format(fitted, "f")
+
+
 def format_amount(
     value: Amount, currency: Optional[str] = None, language: Optional[str] = None
 ) -> str:
