@@ -12,12 +12,14 @@ from rest_framework import permissions
 
 from genmo_fb_common.ownership import ensure_self_or_own_child, get_family_context
 
+from .messages import LocalisedMessage
+
 
 def _signed_in(request) -> bool:
     return bool(getattr(request, "bank_customer_id", None))
 
 
-class IsParent(permissions.BasePermission):
+class IsParent(LocalisedMessage, permissions.BasePermission):
     """
     Permission check for parent users.
 
@@ -25,27 +27,27 @@ class IsParent(permissions.BasePermission):
         permission_classes = [IsParent]
     """
 
-    message = "Only parents can perform this action."
+    message_key = "family.parents_only"
 
     def has_permission(self, request, view):
         return _signed_in(request) and get_family_context(request).is_parent
 
 
-class IsChild(permissions.BasePermission):
+class IsChild(LocalisedMessage, permissions.BasePermission):
     """Permission check for child users."""
 
-    message = "Only children can perform this action."
+    message_key = "family.children_only"
 
     def has_permission(self, request, view):
         return _signed_in(request) and get_family_context(request).is_child
 
 
-class IsParentOrReadOnly(permissions.BasePermission):
+class IsParentOrReadOnly(LocalisedMessage, permissions.BasePermission):
     """
     Parents can do anything, children can only read.
     """
 
-    message = "Only parents can perform this action."
+    message_key = "family.parents_only"
 
     def has_permission(self, request, view):
         if not _signed_in(request):
@@ -55,7 +57,7 @@ class IsParentOrReadOnly(permissions.BasePermission):
         return get_family_context(request).is_parent
 
 
-class IsFamilyMember(permissions.BasePermission):
+class IsFamilyMember(LocalisedMessage, permissions.BasePermission):
     """
     Check if user is a member of the family being accessed.
 
@@ -63,7 +65,7 @@ class IsFamilyMember(permissions.BasePermission):
     a `family_id` in URL kwargs.
     """
 
-    message = "You must be a member of this family."
+    message_key = "family.members_only"
 
     def has_permission(self, request, view):
         if not _signed_in(request):
@@ -81,7 +83,7 @@ class IsFamilyMember(permissions.BasePermission):
         )
 
 
-class IsSelfOrOwnChild(permissions.BasePermission):
+class IsSelfOrOwnChild(LocalisedMessage, permissions.BasePermission):
     """
     Object-level (FC-06): the object belongs to the caller, or to a child of the calling
     parent's own family; anybody else gets 403 NOT_YOUR_CHILD.
@@ -94,7 +96,7 @@ class IsSelfOrOwnChild(permissions.BasePermission):
             permission_classes = [IsSelfOrOwnChild]
     """
 
-    message = "Authentication credentials were not provided or are invalid."
+    message_key = "auth.required"
 
     def has_permission(self, request, view):
         return _signed_in(request)
