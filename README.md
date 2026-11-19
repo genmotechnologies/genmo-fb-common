@@ -278,6 +278,28 @@ class InternalTransferView(APIView):
 No token, or a user's token: 401. A service token without the scope: 403. A service token
 on a user endpoint: 401 (it can't act as a parent or child).
 
+## Languages and texts (PL8 / XC-01 / NO-01)
+
+User-facing text is kept by message key, in the bank's languages (`BANK_LANGUAGES`,
+default English, French and Arabic), in one catalog per service loaded once at start-up:
+no file, database or network per request, and no compile step.
+
+```python
+from genmo_fb_common.i18n import Messages
+
+MESSAGES = Messages({"goal.not_found": {"en": "...", "fr": "...", "ar": "..."}})
+MESSAGES.text("goal.not_found")              # in the request's language
+MESSAGES.text("goal.not_found", language="ar")
+assert MESSAGES.missing() == []              # every key in every language (a test)
+```
+
+`genmo_fb_common.i18n.LanguageMiddleware` picks the request's language from
+Accept-Language (only the bank's languages, otherwise `BANK_DEFAULT_LANGUAGE`), turns on
+Django's own translations and answers with Content-Language. For somebody who is not the
+caller (a notification), pass their language or use `use_language(...)`. Amounts:
+`bank_config.format_amount`; dates: `i18n.format_date`, on the bank's clock. Arabic is
+right to left (`is_rtl`); laying it out is the app's job.
+
 ## Tracing and metrics (FC-08)
 
 Tracing follows the W3C `traceparent` header. Add the middleware after
