@@ -1,0 +1,67 @@
+{
+  "event_type": "learning.lesson.completed",
+  "version": 1,
+  "source_service": "learning-service",
+  "description": "A learner finished a lesson (LT-03). gamification awards XP for it (GA-02).",
+  "data": {
+    "type": "object",
+    "required": [
+      "lesson_id",
+      "topic_id",
+      "bank_customer_id",
+      "family_id",
+      "audience",
+      "language",
+      "completed_at"
+    ],
+    "properties": {
+      "lesson_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "topic_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "family_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "audience": {
+        "type": "string",
+        "enum": [
+          "child",
+          "adult"
+        ]
+      },
+      "language": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 8
+      },
+      "completed_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "lesson_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "topic_id": "0b3e5f0a-2c41-4d0e-9a8b-5b2f6c7d8e90",
+      "bank_customer_id": "CUST-C1",
+      "family_id": "12345678-1234-5678-1234-567812345678",
+      "audience": "child",
+      "language": "en",
+      "completed_at": "2026-11-19T10:00:00+00:00"
+    }
+  ]
+}

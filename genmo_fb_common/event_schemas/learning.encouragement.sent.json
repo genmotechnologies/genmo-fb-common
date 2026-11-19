@@ -1,0 +1,64 @@
+{
+  "event_type": "learning.encouragement.sent",
+  "version": 1,
+  "source_service": "learning-service",
+  "description": "A parent sent a child a word of encouragement about their learning (LT-04); notification tells the child.",
+  "data": {
+    "type": "object",
+    "required": [
+      "encouragement_id",
+      "family_id",
+      "from_bank_customer_id",
+      "to_bank_customer_id",
+      "message",
+      "lesson_id",
+      "sent_at"
+    ],
+    "properties": {
+      "encouragement_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "family_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "from_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "to_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "message": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 280
+      },
+      "lesson_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "sent_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "encouragement_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "family_id": "12345678-1234-5678-1234-567812345678",
+      "from_bank_customer_id": "CUST-P1",
+      "to_bank_customer_id": "CUST-C1",
+      "message": "Well done!",
+      "lesson_id": null,
+      "sent_at": "2026-11-19T10:00:00+00:00"
+    }
+  ]
+}
