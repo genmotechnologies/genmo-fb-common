@@ -27,6 +27,8 @@ def test_there_is_a_schema_for_every_event_the_services_publish():
         "learning.quiz": ["answered"],
         "learning.encouragement": ["sent"],
         "money_request": ["created", "approved", "declined"],
+        # AC-05: a parent reacts to a child's transaction (COM-036)
+        "reaction": ["set"],
         "family": ["created", "updated", "deleted"],
         "limits": ["rule.changed", "exceeded"],
         "card": ["requested", "created", "blocked", "unblocked", "pin_changed"],
