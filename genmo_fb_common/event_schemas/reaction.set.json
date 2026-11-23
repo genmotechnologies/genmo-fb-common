@@ -1,0 +1,75 @@
+{
+  "event_type": "reaction.set",
+  "version": 1,
+  "source_service": "account-service",
+  "description": "A parent put an emoji reaction on a transaction of their child's wallet, or changed it (AC-05); notification tells the child. Not sent when the same emoji is sent again, nor when a reaction is taken off.",
+  "data": {
+    "type": "object",
+    "required": [
+      "wallet_id",
+      "transaction_id",
+      "family_id",
+      "child_bank_customer_id",
+      "reactor_bank_customer_id",
+      "emoji",
+      "previous_emoji",
+      "occurred_at"
+    ],
+    "properties": {
+      "wallet_id": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "transaction_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "family_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+      },
+      "child_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "reactor_bank_customer_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "emoji": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 16
+      },
+      "previous_emoji": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "maxLength": 16,
+        "description": "The parent's earlier emoji on it; null for a first reaction."
+      },
+      "occurred_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "wallet_id": "6f1b6c64-6d38-4f9e-8e60-0f1f1b0e8f11",
+      "transaction_id": "TXN-0001",
+      "family_id": "12345678-1234-5678-1234-567812345678",
+      "child_bank_customer_id": "CUST-C1",
+      "reactor_bank_customer_id": "CUST-P1",
+      "emoji": "👍",
+      "previous_emoji": null,
+      "occurred_at": "2026-11-22T09:30:00Z"
+    }
+  ]
+}
