@@ -15,6 +15,12 @@ from genmo_fb_common.tracing import outgoing_traceparent
 
 logger = structlog.get_logger(__name__)
 
+# Reads change nothing, so asking again is always safe.
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+# Failures where the request never reached the other service, so asking again cannot do
+# the work twice. A read timeout is not one of them: the work may have been done.
+NEVER_SENT = (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
+
 
 def _error_code(response: "httpx.Response") -> Optional[str]:
     """
@@ -41,7 +47,10 @@ class ServiceClient:
     Base HTTP client for calling other GenMo services.
 
     Features:
-    - Automatic retries with exponential backoff
+    - Automatic retries with exponential backoff, only when asking again is safe: a read
+      (GET), a call carrying an `idempotency_key`, or a failure before the request left
+      this service (the connection was refused). A write without a key is never repeated
+      after a timeout or a 5xx answer, because the other service may already have done it.
     - Request/response logging
     - Timeout handling
     - JWT token forwarding
@@ -102,6 +111,7 @@ class ServiceClient:
         path: str,
         data: Optional[dict] = None,
         params: Optional[dict] = None,
+        idempotency_key: Optional[str] = None,
     ) -> dict:
         """
         Make HTTP request with retry logic.
@@ -111,6 +121,9 @@ class ServiceClient:
             path: API endpoint path
             data: Request body (for POST/PUT)
             params: Query parameters (for GET)
+            idempotency_key: sent as the Idempotency-Key header. The other service
+                answers a repeat of the same key with the first answer, so the call
+                may be retried like a read.
 
         Returns:
             Response JSON as dict
@@ -120,6 +133,9 @@ class ServiceClient:
         """
         url = urljoin(self.base_url, path)
         headers = self._get_headers()
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
+        repeatable = method.upper() in SAFE_METHODS or bool(idempotency_key)
 
         last_exception = None
 
@@ -158,6 +174,14 @@ class ServiceClient:
                     )
                     raise
                 last_exception = e
+                if not repeatable:
+                    logger.warning(
+                        "service_error_not_retried",
+                        method=method,
+                        url=url,
+                        status=e.response.status_code,
+                    )
+                    break
 
             except (httpx.ConnectError, httpx.TimeoutException) as e:
                 last_exception = e
@@ -168,6 +192,9 @@ class ServiceClient:
                     error=str(e),
                     attempt=attempt + 1,
                 )
+                if not repeatable and not isinstance(e, NEVER_SENT):
+                    # it may have been done: the caller decides, not this client
+                    break
 
             # Exponential backoff
             if attempt < self.max_retries - 1:
@@ -184,21 +211,45 @@ class ServiceClient:
         """Make GET request."""
         return self._make_request("GET", path, params=params)
 
-    def post(self, path: str, data: Optional[dict] = None) -> dict:
+    def post(
+        self,
+        path: str,
+        data: Optional[dict] = None,
+        *,
+        idempotency_key: Optional[str] = None,
+    ) -> dict:
         """Make POST request."""
-        return self._make_request("POST", path, data=data)
+        return self._make_request(
+            "POST", path, data=data, idempotency_key=idempotency_key
+        )
 
-    def put(self, path: str, data: Optional[dict] = None) -> dict:
+    def put(
+        self,
+        path: str,
+        data: Optional[dict] = None,
+        *,
+        idempotency_key: Optional[str] = None,
+    ) -> dict:
         """Make PUT request."""
-        return self._make_request("PUT", path, data=data)
+        return self._make_request(
+            "PUT", path, data=data, idempotency_key=idempotency_key
+        )
 
-    def patch(self, path: str, data: Optional[dict] = None) -> dict:
+    def patch(
+        self,
+        path: str,
+        data: Optional[dict] = None,
+        *,
+        idempotency_key: Optional[str] = None,
+    ) -> dict:
         """Make PATCH request."""
-        return self._make_request("PATCH", path, data=data)
+        return self._make_request(
+            "PATCH", path, data=data, idempotency_key=idempotency_key
+        )
 
-    def delete(self, path: str) -> dict:
+    def delete(self, path: str, *, idempotency_key: Optional[str] = None) -> dict:
         """Make DELETE request."""
-        return self._make_request("DELETE", path)
+        return self._make_request("DELETE", path, idempotency_key=idempotency_key)
 
     def __del__(self):
         """Clean up HTTP client."""

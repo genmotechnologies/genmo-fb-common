@@ -1,9 +1,16 @@
 # XC-03: secret scan rules for genmo-fb-common (used by .github/workflows/security.yml).
-# gitleaks' default rules, with no allowlist: this library holds no keys, passwords or
-# tokens, not even test ones, so anything the scan finds is a real finding. If a plainly
-# fake test value is ever needed, allow it here by pattern, never a real secret.
+# gitleaks' default rules: this library holds no keys, passwords or
+# tokens, so anything the scan finds is a real finding. The one allowance is a value that
+# starts with "test-only-" (a test's made-up idempotency key, say). Never put a real secret
+# in such a value, and never widen this pattern to hide a finding.
 
 title = "genmo-fb-common secret scan"
 
 [extend]
 useDefault = true
+
+[allowlist]
+description = "Plainly fake test values, not secrets"
+regexes = [
+  '''^test-only-[a-z0-9-]+$''',
+]

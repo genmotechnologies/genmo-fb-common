@@ -2,7 +2,7 @@
 #
 # This library is installed by every service, so a key committed here reaches all of them.
 # gitleaks scans the files in the repository and, on a pull request, the commits it adds.
-# The rules are in .gitleaks.toml: gitleaks' defaults, with no allowlist.
+# The rules are in .gitleaks.toml: gitleaks' defaults, and one allowance for test-only- values.
 
 name: Security
 
