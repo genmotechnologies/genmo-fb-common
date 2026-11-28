@@ -1,0 +1,3 @@
+# A test's made-up idempotency key in an earlier commit of the COM-042 branch: not a secret.
+# The key was renamed to a test-only value in the next commit, and history is not rewritten.
+cd12610dc0dd3e6773725f14d60e0f87e346ac03:tests/test_clients.py:generic-api-key:190
