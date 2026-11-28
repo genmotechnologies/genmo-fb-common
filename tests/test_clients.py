@@ -187,11 +187,13 @@ class TestRetriesOnlyWhenAskingAgainIsSafe:
             "post",
             "/x/",
             {"a": 1},
-            idempotency_key="key-123456789",
+            idempotency_key="test-only-idempotency-1",
         )
         assert result == {"ok": True} and request.call_count == 3
         for call in request.call_args_list:
-            assert call.kwargs["headers"]["Idempotency-Key"] == "key-123456789"
+            assert (
+                call.kwargs["headers"]["Idempotency-Key"] == "test-only-idempotency-1"
+            )
 
     def test_no_idempotency_key_header_is_sent_without_a_key(self):
         _, request = _calls(_Client(), [_answer(201)], "post", "/x/", {"a": 1})
