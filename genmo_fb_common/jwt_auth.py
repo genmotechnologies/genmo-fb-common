@@ -19,12 +19,11 @@ Settings (all optional):
     JWT_LEEWAY_SECONDS       clock difference allowed between services (default 30)
     JWT_JWKS_CACHE_SECONDS   how long a fetched key set is kept (default 300)
 
-Usage, in MIDDLEWARE, in place of IdentitySessionMiddleware:
+Usage, in MIDDLEWARE:
     "genmo_fb_common.jwt_auth.JwtAuthMiddleware",
 
-It sets the same attributes IdentitySessionMiddleware sets (`bank_customer_id`, `bank_id`,
-`session_id`), so views, permission classes and ownership checks work unchanged, and
-`request.family`: the caller's role and family (`request.family.role` is "parent", "child"
+It sets `bank_customer_id`, `bank_id` and `session_id`, so views, permission classes and
+ownership checks have the caller, and `request.family`: the caller's role and family (`request.family.role` is "parent", "child"
 or None; `request.family.family_id`, the members and the FA-06 permissions). It comes from
 family-service (FC-06, `genmo_fb_common.ownership`) only when something reads it, once per
 request and cached for 60 seconds, so a request that does not need it costs no call.
@@ -39,8 +38,7 @@ Answers:
     503 AUTH_UNAVAILABLE      the key set could not be fetched and none is held (fail closed)
 
 Known limit: a token is trusted until it expires (15 minutes). A session ended or refreshed at
-identity-service is not noticed here before then; IdentitySessionMiddleware, which asks
-identity-service, does notice.
+identity-service is not noticed here before then.
 """
 
 import threading

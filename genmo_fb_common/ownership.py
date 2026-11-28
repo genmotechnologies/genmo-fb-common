@@ -2,7 +2,7 @@
 Ownership helpers (FC-06 / PL5): a parent reaches only their own family's children, a child
 only themselves.
 
-Who the caller is comes from IdentitySessionMiddleware (`request.bank_customer_id`); their
+Who the caller is comes from JwtAuthMiddleware (`request.bank_customer_id`); their
 family comes from family-service, asked with the caller's own token:
 
     GET {FAMILY_SERVICE_URL}/api/v1/families/
@@ -40,7 +40,7 @@ from .messages import MESSAGES, LocalisedDetail
 logger = structlog.get_logger(__name__)
 
 FAMILY_PERMISSIONS = ("view_children", "approve", "limits_and_cards", "send_money")
-CACHE_TTL = 60  # seconds, as the session cache in IdentitySessionMiddleware
+CACHE_TTL = 60  # seconds, as the family cache of the caller's token
 REQUEST_TIMEOUT = 5.0
 _REQUEST_ATTR = "_genmo_family_context"
 
