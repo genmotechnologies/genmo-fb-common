@@ -1,0 +1,9 @@
+# XC-03: secret scan rules for genmo-fb-common (used by .github/workflows/security.yml).
+# gitleaks' default rules, with no allowlist: this library holds no keys, passwords or
+# tokens, not even test ones, so anything the scan finds is a real finding. If a plainly
+# fake test value is ever needed, allow it here by pattern, never a real secret.
+
+title = "genmo-fb-common secret scan"
+
+[extend]
+useDefault = true
