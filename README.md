@@ -37,6 +37,17 @@ class LimitsClient(ServiceClient):
         return self.post('/api/v1/limits/validate/', {'amount': amount})
 ```
 
+Retries (3 tries, growing wait) happen only when asking again is safe: a read (`get`), a call
+that carries an `idempotency_key`, or a failure before the request left (connection refused).
+A write without a key is not repeated after a timeout or a 5xx answer, because the other
+service may already have done it; the client raises `ServiceUnavailableError` and the caller
+decides. For a write that must survive a blip, send a key the other service honours
+(the `Idempotency-Key` header):
+
+```python
+self.post('/api/v1/transfers/', payload, idempotency_key=str(transfer_id))
+```
+
 ### Events (FC-01 to FC-04)
 
 Every event has the same envelope: `event_id`, `event_type`, `occurred_at` (UTC), `version`,
