@@ -1,0 +1,49 @@
+# XC-03: "Secret scan passes in CI".
+#
+# This library is installed by every service, so a key committed here reaches all of them.
+# gitleaks scans the files in the repository and, on a pull request, the commits it adds.
+# The rules are in .gitleaks.toml: gitleaks' defaults, with no allowlist.
+
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: "8.21.2"
+
+jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          file="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "$base/$file"
+          curl -sSfL "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o checksums.txt
+          grep " $file\$" checksums.txt | sha256sum --check
+          tar -xzf "$file" gitleaks
+          sudo mv gitleaks /usr/local/bin/
+          rm -f "$file" checksums.txt
+
+      - name: Scan the files in the repository
+        run: gitleaks dir . --config .gitleaks.toml --redact --verbose --no-banner
+
+      - name: Scan the commits of this pull request
+        if: github.event_name == 'pull_request'
+        run: >-
+          gitleaks git . --config .gitleaks.toml --redact --verbose --no-banner
+          --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
