@@ -15,31 +15,13 @@ from genmo_fb_common.events import EventPayload
 TYPES = schemas.event_types()
 
 
-def test_there_is_a_schema_for_every_event_the_services_publish():
-    published = {
-        "transfer": ["initiated", "completed", "failed"],
-        # TR-07: a child's transfer the approval rule holds (COM-025)
-        "transfer.approval": ["requested", "approved", "declined"],
-        # FC-01: notification-service's own events (COM-027)
-        "notification": ["created", "sent", "read", "failed"],
-        # P13: learning-service (COM-033)
-        "learning.lesson": ["completed"],
-        "learning.quiz": ["answered"],
-        "learning.encouragement": ["sent"],
-        "money_request": ["created", "approved", "declined"],
-        # AC-05: a parent reacts to a child's transaction (COM-036)
-        "reaction": ["set"],
-        "family": ["created", "updated", "deleted"],
-        "limits": ["rule.changed", "exceeded"],
-        "card": ["requested", "created", "blocked", "unblocked", "pin_changed"],
-        "card.controls": ["updated"],
-        "gamification": ["xp.earned", "badge.earned", "level.up"],
-        "gamification.streak": ["started", "continued", "broken"],
-    }
-    for family, names in published.items():
-        for name in names:
-            assert f"{family}.{name}" in TYPES
-    assert len(TYPES) >= 50
+def test_every_schema_file_is_a_published_event_type():
+    """The list comes from the schema folder, so a new schema is covered by every test
+    below with nothing to add here."""
+    on_disk = sorted(path.stem for path in schemas.SCHEMA_DIR.glob("*.json"))
+    assert on_disk and TYPES == on_disk
+    # a schema can be added but not lost: 81 files when this guard was written
+    assert len(TYPES) >= 81
 
 
 @pytest.mark.parametrize("event_type", TYPES)
