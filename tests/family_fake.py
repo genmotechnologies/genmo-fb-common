@@ -84,5 +84,5 @@ def answer_for(token):
 
 def request_as(who, drf=True):
     raw = RequestFactory().get("/", HTTP_AUTHORIZATION=f"Bearer token-{who}")
-    raw.bank_customer_id = who  # what IdentitySessionMiddleware sets
+    raw.bank_customer_id = who  # what JwtAuthMiddleware sets
     return Request(raw) if drf else raw

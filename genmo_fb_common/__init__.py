@@ -20,7 +20,6 @@ _EXPORTS = {
     "ServiceUnavailableError": ".exceptions",
     "ValidationError": ".exceptions",
     "ActiveManager": ".managers",
-    "IdentitySessionMiddleware": ".middleware",
     "BaseModel": ".models",
     "FamilyContext": ".ownership",
     "FamilyPermissionMissing": ".ownership",

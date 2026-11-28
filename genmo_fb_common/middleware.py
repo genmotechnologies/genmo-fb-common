@@ -2,16 +2,12 @@
 Django middleware for GenMo services.
 """
 
-import hashlib
 import threading
 import uuid
 from typing import Callable
 
-import jwt
 import structlog
-from django.conf import settings
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.utils import timezone
+from django.http import HttpRequest, HttpResponse
 
 logger = structlog.get_logger(__name__)
 
@@ -108,136 +104,3 @@ class RequestLoggingMiddleware:
         )
 
         return response
-
-
-class BaseSessionAuthMiddleware:
-    """
-    Common Middleware to authenticate sessions using JWT and Database.
-    Inherit this in your service and provide the Session model.
-    """
-
-    def __init__(self, get_response, session_model):
-        self.get_response = get_response
-        self.session_model = session_model
-
-    def __call__(self, request):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return self.get_response(request)
-
-        token = auth_header.split(" ")[1]
-        try:
-            # 1. Decode JWT
-            jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            token_hash = hashlib.sha256(token.encode()).hexdigest()
-
-            # 2. Check Database Session
-
-            session = self.session_model.objects.filter(token_hash=token_hash).first()
-
-            if not session or not session.is_valid:
-                return JsonResponse({"error": "Session expired or invalid"}, status=401)
-
-            # 3. Attach User Context
-            request.bank_customer_id = session.bank_customer_id
-            request.bank_id = session.bank_id
-            request.session_id = str(session.id)
-            request.current_session = session
-
-            # Update activity
-            session.last_activity_at = timezone.now()
-            session.save(update_fields=["last_activity_at"])
-
-        except jwt.ExpiredSignatureError:
-            return JsonResponse({"error": "Token has expired"}, status=401)
-        except Exception:
-            return JsonResponse({"error": "Invalid token"}, status=401)
-
-        return self.get_response(request)
-
-
-class IdentitySessionMiddleware:
-    """
-    Session validation middleware for services that don't own sessions.
-
-    Validates tokens by calling identity-service's /api/v1/sessions/validate/ endpoint.
-    Caches valid sessions in Redis to minimize HTTP calls.
-
-    Settings required:
-        IDENTITY_SERVICE_URL: URL of identity-service (default: http://identity-service:8001)
-        CACHES: Django cache config with Redis backend
-
-    On success, attaches to request:
-        - bank_customer_id
-        - bank_id
-        - session_id
-    """
-
-    CACHE_TTL = 60  # seconds
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        auth_header = request.headers.get("Authorization", "")
-
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
-            session_data = self._validate_session(token)
-
-            if session_data:
-                request.bank_customer_id = session_data["bank_customer_id"]
-                request.bank_id = session_data["bank_id"]
-                request.session_id = session_data["session_id"]
-            else:
-                request.bank_customer_id = None
-                request.bank_id = None
-                request.session_id = None
-        else:
-            request.bank_customer_id = None
-            request.bank_id = None
-            request.session_id = None
-
-        return self.get_response(request)
-
-    def _validate_session(self, token):
-        import hashlib
-
-        import httpx
-        import structlog
-        from django.conf import settings
-        from django.core.cache import cache
-
-        logger = structlog.get_logger(__name__)
-
-        token_hash = hashlib.sha256(token.encode()).hexdigest()[:16]
-        cache_key = f"session:{token_hash}"
-
-        # Check cache first
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return cached if cached else None
-
-        # Call identity-service
-        identity_url = getattr(
-            settings, "IDENTITY_SERVICE_URL", "http://identity-service:8001"
-        )
-
-        try:
-            response = httpx.get(
-                f"{identity_url}/api/v1/sessions/validate/",
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=5.0,
-            )
-
-            if response.status_code == 200:
-                data = response.json()
-                cache.set(cache_key, data, self.CACHE_TTL)
-                return data
-            else:
-                cache.set(cache_key, False, self.CACHE_TTL)
-                return None
-
-        except Exception as e:
-            logger.warning("identity_service_unavailable", error=str(e))
-            return None

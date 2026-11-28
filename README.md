@@ -125,7 +125,7 @@ language or the bank's default, and `is_rtl("ar")` is true.
 
 ### Ownership (FC-06)
 A parent reaches only their own family's children, a child only themselves. The caller comes
-from `IdentitySessionMiddleware` (`request.bank_customer_id`); the family comes from
+from `JwtAuthMiddleware` (`request.bank_customer_id`); the family comes from
 family-service (`GET /api/v1/families/` with the caller's token): one call per request at most,
 cached 60 seconds per token, and no call when callers ask about themselves. Set
 `FAMILY_SERVICE_URL` (default `http://family-service:8002`).
@@ -163,13 +163,13 @@ once and kept for 5 minutes.
 ```python
 MIDDLEWARE = [
     "genmo_fb_common.middleware.RequestIDMiddleware",
-    "genmo_fb_common.jwt_auth.JwtAuthMiddleware",  # in place of IdentitySessionMiddleware
+    "genmo_fb_common.jwt_auth.JwtAuthMiddleware",
     ...
 ]
 ```
 
-It sets what `IdentitySessionMiddleware` sets (`request.bank_customer_id`, `request.bank_id`,
-`request.session_id`) plus `request.token_claims`, so views, permission classes and the
+It sets `request.bank_customer_id`, `request.bank_id`, `request.session_id` and
+`request.token_claims`, so views, permission classes and the
 ownership helpers work unchanged. The token carries no role or family; those come from
 family-service through the ownership helpers above.
 
@@ -189,9 +189,10 @@ family-service through the ownership helpers above.
 | `401 INVALID_TOKEN` | tampered, expired, wrong issuer or audience, not an access token, not RS256 |
 | `503 AUTH_UNAVAILABLE` | the key set can't be fetched and none is held: nothing can be checked |
 
-A token is trusted until it expires (15 minutes). A session ended at identity-service is not
-noticed before then; `IdentitySessionMiddleware`, which asks identity-service on each new
-token, does notice. `verify_access_token(token)` gives the claims outside a request.
+A token is trusted until it expires (15 minutes by default, identity-service's
+`ACCESS_TOKEN_MINUTES`). A session ended at identity-service is not noticed before then:
+shorten that setting, or add a revocation check, if an immediate logout matters.
+`verify_access_token(token) gives the claims outside a request.
 
 ## Updating genmo-fb-common
 

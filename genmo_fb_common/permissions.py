@@ -1,7 +1,7 @@
 """
 DRF permission classes for GenMo services.
 
-The caller comes from IdentitySessionMiddleware (`request.bank_customer_id`); their role and
+The caller comes from JwtAuthMiddleware (`request.bank_customer_id`); their role and
 family come from family-service through `genmo_fb_common.ownership` (one call per request at
 most, none when a caller only reaches their own data). FC-06: the old classes read
 `request.user.role` / `request.user.family_ids`, which nothing sets, and IsOwnerOrParent let
